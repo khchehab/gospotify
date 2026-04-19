@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"golang.org/x/oauth2"
 )
@@ -25,8 +26,9 @@ func NewClient(ts oauth2.TokenSource) *Client {
 }
 
 // get performs a GET request to the specified URL and unmarshals the response into the provided response object.
-func (c *Client) get(ctx context.Context, endpoint string, response any) error {
-	url := fmt.Sprintf("%s%s", c.baseURL, endpoint)
+func (c *Client) get(ctx context.Context, endpoint string, response any, opts ...QueryOption) error {
+	url := c.buildURL(endpoint, opts...)
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return err
@@ -62,4 +64,20 @@ func (c *Client) get(ctx context.Context, endpoint string, response any) error {
 		return err
 	}
 	return nil
+}
+
+// buildURL builds a URL for the specified endpoint and query parameters.
+func (c *Client) buildURL(endpoint string, opts ...QueryOption) string {
+	url := fmt.Sprintf("%s%s", c.baseURL, endpoint)
+
+	p := applyQueryParameters(opts...)
+	if q := p.toQuery(); q != "" {
+		if strings.ContainsRune(endpoint, '?') {
+			url += "&" + q
+		} else {
+			url += "?" + q
+		}
+	}
+
+	return url
 }

@@ -74,6 +74,15 @@ type FollowersObject struct {
 type CursorsObject struct {
 	// After is the cursor to use as a key to find the next page of items.
 	After *string `json:"after"`
-	// Before is the cursor to use as key to find the previous page of items.
+	// Before is the cursor to use as a key to find the previous page of items.
 	Before *string `json:"before"`
+}
+
+// CopyrightObject is the copyright statement.
+type CopyrightObject struct {
+	// Text is the copyright text for this content.
+	Text string `json:"text"`
+	// Type is the type of copyright.
+	// C = the copyright, P = the sound recording (performance) copyright.
+	Type string `json:"type"`
 }

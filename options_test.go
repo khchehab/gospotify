@@ -136,6 +136,42 @@ func TestWithAfter(t *testing.T) {
 	}
 }
 
+// ---- WithMarket ----
+
+func TestWithMarket(t *testing.T) {
+	cases := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{"us", "US", "US"},
+		{"gb", "GB", "GB"},
+		{"empty_string", "", ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := queryParameters{}
+			WithMarket(tc.input)(&p)
+			if p.market == nil {
+				t.Fatal("market is nil")
+			}
+			if *p.market != tc.want {
+				t.Errorf("got %q, want %q", *p.market, tc.want)
+			}
+		})
+	}
+}
+
+func TestWithMarket_PointerIndependence(t *testing.T) {
+	val := "US"
+	p := queryParameters{}
+	WithMarket(val)(&p)
+	val = "GB"
+	if *p.market != "US" {
+		t.Errorf("market mutated after caller change: got %q", *p.market)
+	}
+}
+
 // ---- toQuery ----
 
 func TestToQuery(t *testing.T) {
@@ -215,6 +251,33 @@ func TestToQuery(t *testing.T) {
 			queryParameters{timeRange: ptrTimeRange(TimeRange(""))},
 			"time_range=",
 		},
+		{
+			"only_market",
+			queryParameters{market: ptrString("US")},
+			"market=US",
+		},
+		{
+			"market_gb",
+			queryParameters{market: ptrString("GB")},
+			"market=GB",
+		},
+		{
+			// url.Values.Encode sorts keys alphabetically: after, limit, market, offset, time_range
+			"all_five_fields",
+			queryParameters{
+				timeRange: ptrTimeRange(LongTerm),
+				limit:     ptrInt(50),
+				offset:    ptrInt(0),
+				after:     ptrString("xyz"),
+				market:    ptrString("US"),
+			},
+			"after=xyz&limit=50&market=US&offset=0&time_range=long_term",
+		},
+		{
+			"market_with_limit",
+			queryParameters{market: ptrString("DE"), limit: ptrInt(20)},
+			"limit=20&market=DE",
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -231,7 +294,7 @@ func TestToQuery(t *testing.T) {
 func TestApplyQueryParameters(t *testing.T) {
 	t.Run("no_options", func(t *testing.T) {
 		p := applyQueryParameters()
-		if p.timeRange != nil || p.limit != nil || p.offset != nil || p.after != nil {
+		if p.timeRange != nil || p.limit != nil || p.offset != nil || p.after != nil || p.market != nil {
 			t.Error("expected all fields to be nil")
 		}
 	})
@@ -321,6 +384,23 @@ func TestApplyQueryParameters(t *testing.T) {
 		p := applyQueryParameters(WithLimit(-1), WithOffset(-1))
 		if *p.limit != 1 || *p.offset != 0 {
 			t.Errorf("got limit=%d offset=%d, want limit=1 offset=0", *p.limit, *p.offset)
+		}
+	})
+
+	t.Run("single_market", func(t *testing.T) {
+		p := applyQueryParameters(WithMarket("US"))
+		if p.market == nil || *p.market != "US" {
+			t.Errorf("unexpected market: %v", p.market)
+		}
+		if p.timeRange != nil || p.limit != nil || p.offset != nil || p.after != nil {
+			t.Error("expected other fields to be nil")
+		}
+	})
+
+	t.Run("last_write_wins_market", func(t *testing.T) {
+		p := applyQueryParameters(WithMarket("US"), WithMarket("GB"))
+		if *p.market != "GB" {
+			t.Errorf("got %q, want GB", *p.market)
 		}
 	})
 }

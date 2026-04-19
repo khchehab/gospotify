@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 )
@@ -172,6 +173,98 @@ func TestGet_CancelledContext_AlreadyCancelled(t *testing.T) {
 	}
 	if result.Name != "" {
 		t.Errorf("result should be zero-value, got Name=%q", result.Name)
+	}
+}
+
+func TestGet_OptsPassedThrough(t *testing.T) {
+	var capturedQuery string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedQuery = r.URL.RawQuery
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{}`))
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	var result testPayload
+	err := client.get(context.Background(), "/some/endpoint", &result, WithLimit(25), WithOffset(10))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	q, err2 := url.ParseQuery(capturedQuery)
+	if err2 != nil {
+		t.Fatalf("could not parse query %q: %v", capturedQuery, err2)
+	}
+	if q.Get("limit") != "25" {
+		t.Errorf("limit: got %q, want 25", q.Get("limit"))
+	}
+	if q.Get("offset") != "10" {
+		t.Errorf("offset: got %q, want 10", q.Get("offset"))
+	}
+}
+
+// ---- buildURL ----
+
+func TestBuildURL_NoOpts(t *testing.T) {
+	client := newTestClient("https://api.spotify.com/v1")
+	got := client.buildURL("/tracks/1")
+	want := "https://api.spotify.com/v1/tracks/1"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestBuildURL_WithOpts_NoExistingQuery(t *testing.T) {
+	client := newTestClient("https://api.spotify.com/v1")
+	got := client.buildURL("/me/top/artists", WithLimit(10))
+	parsed, err := url.Parse(got)
+	if err != nil {
+		t.Fatalf("invalid URL: %v", err)
+	}
+	if parsed.Query().Get("limit") != "10" {
+		t.Errorf("limit: got %q, want 10", parsed.Query().Get("limit"))
+	}
+	// must have exactly one '?' in the URL
+	if strings.Count(got, "?") != 1 {
+		t.Errorf("expected exactly one '?' in URL, got: %q", got)
+	}
+}
+
+func TestBuildURL_WithOpts_ExistingQuery(t *testing.T) {
+	client := newTestClient("https://api.spotify.com/v1")
+	got := client.buildURL("/me/following?type=artist", WithLimit(5))
+	parsed, err := url.Parse(got)
+	if err != nil {
+		t.Fatalf("invalid URL: %v", err)
+	}
+	q := parsed.Query()
+	if q.Get("type") != "artist" {
+		t.Errorf("type: got %q, want artist", q.Get("type"))
+	}
+	if q.Get("limit") != "5" {
+		t.Errorf("limit: got %q, want 5", q.Get("limit"))
+	}
+	if strings.Count(got, "?") != 1 {
+		t.Errorf("expected exactly one '?' in URL, got: %q", got)
+	}
+}
+
+func TestBuildURL_NoOpts_EndpointWithExistingQuery_Unchanged(t *testing.T) {
+	client := newTestClient("https://api.spotify.com/v1")
+	got := client.buildURL("/me/following?type=artist")
+	want := "https://api.spotify.com/v1/me/following?type=artist"
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestBuildURL_NoOpts_NoQueryAppended(t *testing.T) {
+	client := newTestClient("https://api.spotify.com/v1")
+	got := client.buildURL("/me")
+	if strings.Contains(got, "?") {
+		t.Errorf("expected no '?' in URL for no-opts call, got: %q", got)
 	}
 }
 

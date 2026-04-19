@@ -564,6 +564,49 @@ func TestGetFollowedArtists_EmptyItems(t *testing.T) {
 	}
 }
 
+func TestGetUserTopArtists_WithMarket(t *testing.T) {
+	srv, req := newUsersTestServer(t, http.StatusOK, topArtistsBody)
+	defer srv.Close()
+
+	client := newUsersClient(srv.URL)
+	_, err := client.GetUserTopArtists(context.Background(), WithMarket("US"))
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	assertQueryParam(t, req.query, "market", "US")
+}
+
+func TestGetUserTopTracks_WithMarket(t *testing.T) {
+	srv, req := newUsersTestServer(t, http.StatusOK, topTracksBody)
+	defer srv.Close()
+
+	client := newUsersClient(srv.URL)
+	_, err := client.GetUserTopTracks(context.Background(), WithMarket("GB"))
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	assertQueryParam(t, req.query, "market", "GB")
+}
+
+func TestGetFollowedArtists_WithMarket(t *testing.T) {
+	srv, req := newUsersTestServer(t, http.StatusOK, followedArtistsBody)
+	defer srv.Close()
+
+	client := newUsersClient(srv.URL)
+	_, err := client.GetFollowedArtists(context.Background(), WithMarket("DE"))
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	assertQueryParam(t, req.query, "type", "artist")
+	assertQueryParam(t, req.query, "market", "DE")
+	if strings.Count(req.rawQuery, "?") != 0 {
+		t.Errorf("raw query must not contain '?', got: %q", req.rawQuery)
+	}
+}
+
 func TestGetFollowedArtists_CancelledContext(t *testing.T) {
 	srv, _ := newUsersTestServer(t, http.StatusOK, followedArtistsBody)
 	defer srv.Close()

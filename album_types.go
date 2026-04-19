@@ -30,4 +30,24 @@ type AlbumObject struct {
 	URI string `json:"uri"`
 	// Artists are the artists of the album. Each artist object includes a link in href to more detailed information about the artist.
 	Artists []SimplifiedArtistObject `json:"artists"`
+	// Tracks is the tracks of the album.
+	Tracks *Page[SimplifiedTrackObject] `json:"tracks"`
+	// Copyrights is the copyright statements of the album.
+	Copyrights []CopyrightObject `json:"copyrights"`
+	// ExternalIDs is the known external IDs for the album.
+	ExternalIDs *ExternalIDs `json:"external_ids"`
+	// Deprecated: Genres of the album. The array is always empty.
+	Genres []string `json:"genres"`
+	// Deprecated: Label is the label associated with the album.
+	Label string `json:"label"`
+	// Deprecated: Popularity of the album. The value will be between 0 and 100, with 100 being the most popular.
+	Popularity int `json:"popularity"`
+}
+
+// SavedAlbumObject is the object returned by the Spotify API for a saved album.
+type SavedAlbumObject struct {
+	// AddedAt is the date and time the album was saved.
+	AddedAt string `json:"added_at"`
+	// Album is the information about the album.
+	Album AlbumObject `json:"album"`
 }

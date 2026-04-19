@@ -15,6 +15,9 @@ type queryParameters struct {
 	offset *int
 	// after is the last item ID retrieved from the previous request.
 	after *string
+	// market is an ISO 3166-1 alpha-2 country code.
+	// If a country code is specified, only content that is available in that market will be returned.
+	market *string
 }
 
 // applyQueryParameters applies the options to the queryParameters.
@@ -42,6 +45,9 @@ func (p queryParameters) toQuery() string {
 	}
 	if p.after != nil {
 		query.Set("after", *p.after)
+	}
+	if p.market != nil {
+		query.Set("market", *p.market)
 	}
 	return query.Encode()
 }
@@ -83,5 +89,12 @@ func WithOffset(offset int) QueryOption {
 func WithAfter(after string) QueryOption {
 	return func(p *queryParameters) {
 		p.after = &after
+	}
+}
+
+// WithMarket sets the market for the content to be returned.
+func WithMarket(market string) QueryOption {
+	return func(p *queryParameters) {
+		p.market = &market
 	}
 }
