@@ -96,16 +96,10 @@ func authorizationCode(oauthConfig *oauth2.Config, serverPort int, authCodeURL a
 	return exchangeCode(oauthConfig, code, exchange)
 }
 
-// startLocalAuthServer starts a local HTTP server that listens for the authorization code.
-func startLocalAuthServer(serverPort int, authCh chan authResult, state string) *http.Server {
-	var once sync.Once
-
-	mux := http.NewServeMux()
-	server := &http.Server{
-		Addr:    fmt.Sprintf("127.0.0.1:%d", serverPort),
-		Handler: mux,
-	}
-	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
+// newCallbackHandler returns the HTTP handler for the OAuth2 callback endpoint.
+// It sends exactly one authResult to authCh (guarded by once) and then returns.
+func newCallbackHandler(state string, authCh chan authResult, once *sync.Once) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		res := authResult{code: "", err: errors.New("unknown error")}
 
 		defer once.Do(func() {
@@ -136,7 +130,19 @@ func startLocalAuthServer(serverPort int, authCh chan authResult, state string) 
 
 		res.code = code
 		res.err = nil
-	})
+	}
+}
+
+// startLocalAuthServer starts a local HTTP server that listens for the authorization code.
+func startLocalAuthServer(serverPort int, authCh chan authResult, state string) *http.Server {
+	var once sync.Once
+
+	mux := http.NewServeMux()
+	server := &http.Server{
+		Addr:    fmt.Sprintf("127.0.0.1:%d", serverPort),
+		Handler: mux,
+	}
+	mux.HandleFunc("/callback", newCallbackHandler(state, authCh, &once))
 	go func(srv *http.Server) {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			fmt.Println("error starting server:", err)

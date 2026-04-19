@@ -23,24 +23,25 @@ func RandomString(len int) string {
 	return string(b)
 }
 
-// OpenBrowser opens the given URL in the user's default browser.'
-func OpenBrowser(url string) error {
-	var cmd string
-	var args []string
-
-	switch runtime.GOOS {
+// browserCommand returns the command and arguments needed to open a URL on the given OS.
+func browserCommand(goos, url string) (cmd string, args []string, err error) {
+	switch goos {
 	case "windows":
-		cmd = "rundll32"
-		args = []string{"url.dll,FileProtocolHandler", url}
+		return "rundll32", []string{"url.dll,FileProtocolHandler", url}, nil
 	case "darwin":
-		cmd = "open"
-		args = []string{url}
+		return "open", []string{url}, nil
 	case "linux":
-		cmd = "xdg-open"
-		args = []string{url}
+		return "xdg-open", []string{url}, nil
 	default:
-		return fmt.Errorf("unsupported platform: %s", runtime.GOOS)
+		return "", nil, fmt.Errorf("unsupported platform: %s", goos)
 	}
+}
 
+// OpenBrowser opens the given URL in the user's default browser.
+func OpenBrowser(url string) error {
+	cmd, args, err := browserCommand(runtime.GOOS, url)
+	if err != nil {
+		return err
+	}
 	return exec.Command(cmd, args...).Start()
 }
