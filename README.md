@@ -9,7 +9,7 @@ This wrapper does not implement deprecated endpoints, but deprecated fields will
 Below is a TODO list of endpoints to implement.
 
 - [x] Albums
-- [ ] Artists
+- [x] Artists
 - [ ] Audiobooks
 - [ ] Categories
 - [ ] Chapters
@@ -23,3 +23,23 @@ Below is a TODO list of endpoints to implement.
 - [ ] Shows
 - [x] Tracks
 - [x] Users
+
+### Deprecated Endpoints
+
+Maybe add the deprecated endpoints in the future, since they still can be called from the API, might as well cover them.
+
+- [ ] Albums
+- [ ] Artists
+- [ ] Audiobooks
+- [ ] Categories
+- [ ] Chapters
+- [ ] Episodes
+- [ ] Genres
+- [ ] Library
+- [ ] Markets
+- [ ] Player
+- [ ] Playlists
+- [ ] Search
+- [ ] Shows
+- [ ] Tracks
+- [ ] Users

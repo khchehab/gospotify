@@ -32,7 +32,7 @@ func (c *Client) GetUserTopTracks(ctx context.Context, opts ...QueryOption) (*Pa
 }
 
 // GetFollowedArtists get the current user's followed artists.
-func (c *Client) GetFollowedArtists(ctx context.Context, opts ...QueryOption) (*FollowedArtists, error) {
+func (c *Client) GetFollowedArtists(ctx context.Context, opts ...QueryOption) (*Cursor[ArtistObject], error) {
 	var response followedArtistsResponse
 	if err := c.get(ctx, "/me/following?type=artist", &response, opts...); err != nil {
 		return nil, err

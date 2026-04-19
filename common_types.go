@@ -30,13 +30,29 @@ type Page[T any] struct {
 	Items []T `json:"items"`
 }
 
+// Cursor is a cursor for a page of data.
+type Cursor[T any] struct {
+	// Href is a link to the Web API endpoint returning the full result of the request.
+	Href string `json:"href"`
+	// Limit is the maximum number of items in the response (as set in the query or by default).
+	Limit int `json:"limit"`
+	// Next is the URL to the next page of items (null if none).
+	Next *string `json:"next"`
+	// Cursors is the cursors used to find the next set of items.
+	Cursors CursorsObject `json:"cursors"`
+	// Total is the total number of items available to return.
+	Total int `json:"total"`
+	// Items is the list of paged data.
+	Items []T `json:"items"`
+}
+
 // ExternalURLs is the known external URLs for this object.
 type ExternalURLs struct {
 	// Spotify is the Spotify URL for the object.
 	Spotify string `json:"spotify"`
 }
 
-// ExternalIDs is the known external IDs for the track.
+// ExternalIDs is the known external IDs.
 type ExternalIDs struct {
 	// ISRC is the International Standard Recording Code.
 	ISRC string `json:"isrc"`
@@ -52,7 +68,7 @@ type Restrictions struct {
 	Reason string `json:"reason"`
 }
 
-// ImageObject is the user's profile image.
+// ImageObject is the image information.
 type ImageObject struct {
 	// URL is the source URL of the image.
 	URL string `json:"url"`
@@ -62,7 +78,7 @@ type ImageObject struct {
 	Width *int `json:"width"`
 }
 
-// FollowersObject is the information about the followers of the user.
+// FollowersObject is the information about the followers.
 type FollowersObject struct {
 	// Href will always be set to null, as the Web API does not support it at the moment.
 	Href *string `json:"href"`

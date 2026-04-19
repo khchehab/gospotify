@@ -3,6 +3,7 @@ package gospotify
 import (
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 // queryParameters is a global structure for all query parameters.
@@ -18,6 +19,9 @@ type queryParameters struct {
 	// market is an ISO 3166-1 alpha-2 country code.
 	// If a country code is specified, only content that is available in that market will be returned.
 	market *string
+	// includeGroups is a list of keywords that will be used to filter the response.
+	// If not supplied, all album types will be returned. Valid values are album, single, appears_on, compilation.
+	includeGroups []string
 }
 
 // applyQueryParameters applies the options to the queryParameters.
@@ -48,6 +52,9 @@ func (p queryParameters) toQuery() string {
 	}
 	if p.market != nil {
 		query.Set("market", *p.market)
+	}
+	if len(p.includeGroups) > 0 {
+		query.Set("include_groups", strings.Join(p.includeGroups, ","))
 	}
 	return query.Encode()
 }
@@ -96,5 +103,12 @@ func WithAfter(after string) QueryOption {
 func WithMarket(market string) QueryOption {
 	return func(p *queryParameters) {
 		p.market = &market
+	}
+}
+
+// WithIncludeGroups sets the include groups for the content to be returned.
+func WithIncludeGroups(includeGroups ...string) QueryOption {
+	return func(p *queryParameters) {
+		p.includeGroups = includeGroups
 	}
 }
