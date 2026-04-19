@@ -56,6 +56,8 @@ func (c *Client) get(ctx context.Context, endpoint string, response any) error {
 		return errResponse
 	}
 
+	fmt.Println(string(b))
+
 	if err = json.Unmarshal(b, response); err != nil {
 		return err
 	}

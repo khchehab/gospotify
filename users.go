@@ -15,8 +15,8 @@ func (c *Client) GetCurrentUserProfile(ctx context.Context) (*UserProfile, error
 }
 
 // GetUserTopArtists gets the current user's top artists based on calculated affinity.
-func (c *Client) GetUserTopArtists(ctx context.Context, opts ...TopItemsOption) (*Page[ArtistObject], error) {
-	p := applyTopItems(opts...)
+func (c *Client) GetUserTopArtists(ctx context.Context, opts ...QueryOption) (*Page[ArtistObject], error) {
+	p := applyQueryParameters(opts...)
 
 	var topArtists Page[ArtistObject]
 	if err := c.get(ctx, fmt.Sprintf("/me/top/artists?%s", p.toQuery()), &topArtists); err != nil {
@@ -26,8 +26,8 @@ func (c *Client) GetUserTopArtists(ctx context.Context, opts ...TopItemsOption) 
 }
 
 // GetUserTopTracks gets the current user's top tracks based on calculated affinity.
-func (c *Client) GetUserTopTracks(ctx context.Context, opts ...TopItemsOption) (*Page[TrackObject], error) {
-	p := applyTopItems(opts...)
+func (c *Client) GetUserTopTracks(ctx context.Context, opts ...QueryOption) (*Page[TrackObject], error) {
+	p := applyQueryParameters(opts...)
 
 	var topTracks Page[TrackObject]
 	if err := c.get(ctx, fmt.Sprintf("/me/top/tracks?%s", p.toQuery()), &topTracks); err != nil {
@@ -36,17 +36,17 @@ func (c *Client) GetUserTopTracks(ctx context.Context, opts ...TopItemsOption) (
 	return &topTracks, nil
 }
 
-// applyTopItems applies the options to the topItemsParameters.
-func applyTopItems(opts ...TopItemsOption) topItemsParameters {
-	p := topItemsParameters{
-		timeRange: MediumTerm,
-		limit:     20,
-		offset:    0,
+// GetFollowedArtists get the current user's followed artists.
+func (c *Client) GetFollowedArtists(ctx context.Context, opts ...QueryOption) (*FollowedArtists, error) {
+	p := applyQueryParameters(opts...)
+	endpoint := "/me/following?type=artist"
+	if q := p.toQuery(); q != "" {
+		endpoint += "&" + q
 	}
 
-	for _, opt := range opts {
-		opt(&p)
+	var response followedArtistsResponse
+	if err := c.get(ctx, endpoint, &response); err != nil {
+		return nil, err
 	}
-
-	return p
+	return &response.Artists, nil
 }

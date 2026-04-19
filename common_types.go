@@ -69,3 +69,11 @@ type FollowersObject struct {
 	// Total is the total number of followers.
 	Total int `json:"total"`
 }
+
+// CursorsObject is the cursors used to find the next set of items.
+type CursorsObject struct {
+	// After is the cursor to use as a key to find the next page of items.
+	After *string `json:"after"`
+	// Before is the cursor to use as key to find the previous page of items.
+	Before *string `json:"before"`
+}

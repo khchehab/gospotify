@@ -1,63 +1,5 @@
 package gospotify
 
-import (
-	"net/url"
-	"strconv"
-)
-
-// topItemsParameters is the parameters for the Get a User's Top Items endpoint.
-type topItemsParameters struct {
-	// timeRange is over what time frame the affinities are computed.
-	timeRange TimeRange
-	// limit is the maximum number of items to return. Default: 20. Minimum: 1. Maximum: 50.
-	limit int
-	// offset is the index of the first item to return. Default: 0 (the first item).
-	// Use with limit to get the next set of items.
-	offset int
-}
-
-// toQuery converts the parameters to a query string.
-func (p topItemsParameters) toQuery() string {
-	query := url.Values{}
-	query.Set("time_range", string(p.timeRange))
-	query.Set("limit", strconv.Itoa(p.limit))
-	query.Set("offset", strconv.Itoa(p.offset))
-	return query.Encode()
-}
-
-// TopItemsOption is an option for the Get a User's Top Items endpoint.
-type TopItemsOption func(*topItemsParameters)
-
-// WithTimeRange sets the time range for the affinities.
-func WithTimeRange(timeRange TimeRange) TopItemsOption {
-	return func(p *topItemsParameters) {
-		p.timeRange = timeRange
-	}
-}
-
-// WithLimit sets the maximum number of items to return.
-func WithLimit(limit int) TopItemsOption {
-	return func(p *topItemsParameters) {
-		if limit < 1 {
-			limit = 1
-		}
-		if limit > 50 {
-			limit = 50
-		}
-		p.limit = limit
-	}
-}
-
-// WithOffset sets the index of the first item to return.
-func WithOffset(offset int) TopItemsOption {
-	return func(p *topItemsParameters) {
-		if offset < 0 {
-			offset = 0
-		}
-		p.offset = offset
-	}
-}
-
 // UserProfile is the user's profile.
 type UserProfile struct {
 	// Deprecated: Country is the country of the user, as set in the user's account profile.
@@ -89,4 +31,26 @@ type UserProfile struct {
 	Type string `json:"type"`
 	// URI is the Spotify URI for the user.
 	URI string `json:"uri"`
+}
+
+// FollowedArtists is the user's followed artists.
+type FollowedArtists struct {
+	// Href is a link to the Web API endpoint returning the full result of the request.
+	Href string `json:"href"`
+	// Limit is the maximum number of items in the response (as set in the query or by default).
+	Limit int `json:"limit"`
+	// Next is the URL to the next page of items (null if none).
+	Next *string `json:"next"`
+	// Cursors is the cursors used to find the next set of items.
+	Cursors CursorsObject `json:"cursors"`
+	// Total is the total number of items available to return.
+	Total int `json:"total"`
+	// Items is the list of paged data.
+	Items []ArtistObject `json:"items"`
+}
+
+// followedArtistsResponse is the response for the followed artists' endpoint.
+type followedArtistsResponse struct {
+	// Artists is a paged set of followed by the user.
+	Artists FollowedArtists `json:"artists"`
 }
