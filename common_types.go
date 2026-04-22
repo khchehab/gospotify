@@ -12,7 +12,6 @@ const (
 	LongTerm TimeRange = "long_term"
 )
 
-// Page is a page of data.
 type Page[T any] struct {
 	// Href is a link to the Web API endpoint returning the full result of the request.
 	Href string `json:"href"`
@@ -30,7 +29,6 @@ type Page[T any] struct {
 	Items []T `json:"items"`
 }
 
-// Cursor is a cursor for a page of data.
 type Cursor[T any] struct {
 	// Href is a link to the Web API endpoint returning the full result of the request.
 	Href string `json:"href"`
@@ -46,29 +44,32 @@ type Cursor[T any] struct {
 	Items []T `json:"items"`
 }
 
-// ExternalURLs is the known external URLs for this object.
+type CursorsObject struct {
+	// After is the cursor to use as a key to find the next page of items.
+	After *string `json:"after"`
+	// Before is the cursor to use as a key to find the previous page of items.
+	Before *string `json:"before"`
+}
+
+type ExplicitContent struct {
+	// FilterEnabled when true, indicates that explicit content should not be played.
+	FilterEnabled bool `json:"filter_enabled"`
+	// FilterLocked when true, indicates that the explicit content setting is locked and can't be changed by the user.
+	FilterLocked bool `json:"filter_locked"`
+}
+
 type ExternalURLs struct {
 	// Spotify is the Spotify URL for the object.
 	Spotify string `json:"spotify"`
 }
 
-// ExternalIDs is the known external IDs.
-type ExternalIDs struct {
-	// ISRC is the International Standard Recording Code.
-	ISRC string `json:"isrc"`
-	// EAN is the International Article Number.
-	EAN string `json:"ean"`
-	// UP Cis the Universal Product Code.
-	UPC string `json:"upc"`
+type FollowersObject struct {
+	// Href will always be set to null, as the Web API does not support it at the moment.
+	Href *string `json:"href"`
+	// Total is the total number of followers.
+	Total int `json:"total"`
 }
 
-// Restrictions is the object returned by the Spotify API for any restrictions.
-type Restrictions struct {
-	// Reason is the reason for the restriction. Supported values: "market", "product", or "explicit".
-	Reason string `json:"reason"`
-}
-
-// ImageObject is the image information.
 type ImageObject struct {
 	// URL is the source URL of the image.
 	URL string `json:"url"`
@@ -78,27 +79,23 @@ type ImageObject struct {
 	Width *int `json:"width"`
 }
 
-// FollowersObject is the information about the followers.
-type FollowersObject struct {
-	// Href will always be set to null, as the Web API does not support it at the moment.
-	Href *string `json:"href"`
-	// Total is the total number of followers.
-	Total int `json:"total"`
+type Restrictions struct {
+	// Reason is the reason for the restriction. Supported values: "market", "product", or "explicit".
+	Reason string `json:"reason"`
 }
 
-// CursorsObject is the cursors used to find the next set of items.
-type CursorsObject struct {
-	// After is the cursor to use as a key to find the next page of items.
-	After *string `json:"after"`
-	// Before is the cursor to use as a key to find the previous page of items.
-	Before *string `json:"before"`
+type ExternalIDs struct {
+	// ISRC is the International Standard Recording Code.
+	ISRC string `json:"isrc"`
+	// EAN is the International Article Number.
+	EAN string `json:"ean"`
+	// UP Cis the Universal Product Code.
+	UPC string `json:"upc"`
 }
 
-// CopyrightObject is the copyright statement.
 type CopyrightObject struct {
 	// Text is the copyright text for this content.
 	Text string `json:"text"`
-	// Type is the type of copyright.
-	// C = the copyright, P = the sound recording (performance) copyright.
+	// Type is the type of copyright: C = the copyright, P = the sound recording (performance) copyright.
 	Type string `json:"type"`
 }
