@@ -1,15 +1,5 @@
 package gospotify
 
-type AuthorObject struct {
-	// Name is the name of the author.
-	Name string `json:"name"`
-}
-
-type NarratorObject struct {
-	// Name is the name of the Narrator.
-	Name string `json:"name"`
-}
-
 type AudiobookObject struct {
 	// Authors is the author(s) of the audiobook.
 	Authors []AuthorObject `json:"authors"`

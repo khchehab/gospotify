@@ -12,13 +12,13 @@ Below is a TODO list of endpoints to implement.
 - [x] Artists
 - [x] Audiobooks
 - [x] Chapters
-- [ ] Episodes
+- [x] Episodes
 - [ ] Genres
 - [ ] Library
 - [ ] Markets
 - [ ] Player
 - [ ] Playlists
 - [ ] Search
-- [ ] Shows
+- [x] Shows
 - [x] Tracks
 - [x] Users

@@ -99,3 +99,13 @@ type CopyrightObject struct {
 	// Type is the type of copyright: C = the copyright, P = the sound recording (performance) copyright.
 	Type string `json:"type"`
 }
+
+type AuthorObject struct {
+	// Name is the name of the author.
+	Name string `json:"name"`
+}
+
+type NarratorObject struct {
+	// Name is the name of the Narrator.
+	Name string `json:"name"`
+}
