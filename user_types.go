@@ -71,7 +71,7 @@ type UserTopTracks struct {
 		Images []ImageObject `json:"images"`
 		// Name is the name of the album. In the case of an album takedown, the value may be an empty string.
 		Name string `json:"name"`
-		// ReleaseDate is the date the album was first released. It follows the format of "yyyy-mm".
+		// ReleaseDate is the date the album was first released.
 		ReleaseDate string `json:"release_date"`
 		// ReleaseDatePrecision is the precision with which ReleaseDate value is known. Allowed values are "year", "month", or "day".
 		ReleaseDatePrecision string `json:"release_date_precision"`
