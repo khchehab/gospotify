@@ -10,9 +10,8 @@ Below is a TODO list of endpoints to implement.
 
 - [x] Albums
 - [x] Artists
-- [ ] Audiobooks
-- [ ] Categories
-- [ ] Chapters
+- [x] Audiobooks
+- [x] Chapters
 - [ ] Episodes
 - [ ] Genres
 - [ ] Library
