@@ -22,6 +22,8 @@ type queryParameters struct {
 	// includeGroups is a list of keywords that will be used to filter the response.
 	// If not supplied, all album types will be returned. Valid values are album, single, appears_on, compilation.
 	includeGroups []string
+	// uris is a list of Spotify URIs.
+	uris []string
 }
 
 // applyQueryParameters applies the options to the queryParameters.
@@ -55,6 +57,9 @@ func (p queryParameters) toQuery() string {
 	}
 	if len(p.includeGroups) > 0 {
 		query.Set("include_groups", strings.Join(p.includeGroups, ","))
+	}
+	if len(p.uris) > 0 {
+		query.Set("uris", strings.Join(p.uris, ","))
 	}
 	return query.Encode()
 }
@@ -110,5 +115,12 @@ func WithMarket(market string) QueryOption {
 func WithIncludeGroups(includeGroups ...string) QueryOption {
 	return func(p *queryParameters) {
 		p.includeGroups = includeGroups
+	}
+}
+
+// WithURIs sets the URIs for the content to be returned.
+func WithURIs(uris ...string) QueryOption {
+	return func(p *queryParameters) {
+		p.uris = uris
 	}
 }

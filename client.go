@@ -58,11 +58,81 @@ func (c *Client) get(ctx context.Context, endpoint string, response any, opts ..
 		return errResponse
 	}
 
-	fmt.Println(string(b))
-
 	if err = json.Unmarshal(b, response); err != nil {
 		return err
 	}
+	return nil
+}
+
+// put performs a PUT request to the specified URL.
+func (c *Client) put(ctx context.Context, endpoint string, opts ...QueryOption) error {
+	url := c.buildURL(endpoint, opts...)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, nil)
+	if err != nil {
+		return err
+	}
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer func(Body io.ReadCloser) {
+		if closeErr := Body.Close(); closeErr != nil {
+			fmt.Println("error closing the response body:", closeErr)
+		}
+	}(res.Body)
+
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		var errResponse *ErrorResponse
+		if err = json.Unmarshal(b, &errResponse); err != nil {
+			return err
+		}
+		return errResponse
+	}
+
+	return nil
+}
+
+// delete performs a DELETE request to the specified URL.
+func (c *Client) delete(ctx context.Context, endpoint string, opts ...QueryOption) error {
+	url := c.buildURL(endpoint, opts...)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	if err != nil {
+		return err
+	}
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer func(Body io.ReadCloser) {
+		if closeErr := Body.Close(); closeErr != nil {
+			fmt.Println("error closing the response body:", closeErr)
+		}
+	}(res.Body)
+
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		var errResponse *ErrorResponse
+		if err = json.Unmarshal(b, &errResponse); err != nil {
+			return err
+		}
+		return errResponse
+	}
+
 	return nil
 }
 

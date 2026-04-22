@@ -13,9 +13,7 @@ Below is a TODO list of endpoints to implement.
 - [x] Audiobooks
 - [x] Chapters
 - [x] Episodes
-- [ ] Genres
-- [ ] Library
-- [ ] Markets
+- [x] Library
 - [ ] Player
 - [ ] Playlists
 - [ ] Search

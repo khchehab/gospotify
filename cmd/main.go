@@ -13,7 +13,7 @@ func main() {
 	clientID := os.Getenv("SPOTIFY_CLIENT_ID")
 	clientSecret := os.Getenv("SPOTIFY_CLIENT_SECRET")
 	redirectURL := os.Getenv("SPOTIFY_REDIRECT_URL")
-	scopes := []string{"user-read-private", "user-read-email"}
+	scopes := []string{"user-library-read", "user-follow-read", "playlist-read-private"}
 
 	ts, err := gospotify.AuthorizationCode(clientID, clientSecret, redirectURL, scopes, 8080)
 	if err != nil {
@@ -21,11 +21,11 @@ func main() {
 	}
 
 	c := gospotify.NewClient(ts)
-	up, err := c.GetCurrentUserProfile(context.Background())
+	items, err := c.CheckUserSavedItems(context.Background(), gospotify.WithURIs("spotify:track:7a3LWj5xSFhFRYmztS8wgK", "spotify:album:4aawyAB9vmqN3uQ7FjRGTy", "spotify:artist:2takcwOaAZWiXQijPHIx7B"))
 	if err != nil {
-		fmt.Println("error getting top tracks:", err)
+		fmt.Println("error:", err)
 		return
 	}
-	fmt.Println(up)
+	fmt.Println(items)
 	fmt.Println("done!")
 }
