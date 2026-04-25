@@ -59,6 +59,10 @@ func (c *Client) get(ctx context.Context, endpoint string, response any, opts ..
 		return errResponse
 	}
 
+	if res.StatusCode == 204 {
+		return nil
+	}
+
 	if err = json.Unmarshal(b, response); err != nil {
 		return err
 	}

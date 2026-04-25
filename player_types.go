@@ -5,116 +5,50 @@ import (
 	"fmt"
 )
 
-type PlaylistObject struct {
-	// Collaborative is true if the owner allows other users to modify the playlist.
-	Collaborative bool `json:"collaborative"`
-	// Description is the playlist description. Only returned for modified, verified playlists, otherwise null.
-	Description *string `json:"description"`
-	// ExternalURLs is the known external URLs for this playlist.
-	ExternalURLs ExternalURLs `json:"external_urls"`
-	// Href is a link to the Web API endpoint providing full details of the playlist.
-	Href string `json:"href"`
-	// ID is the Spotify ID for the playlist
-	ID string `json:"id"`
-	// Images for the playlist.
-	Images []ImageObject `json:"images"`
-	// Name is the name of the playlist.
-	Name string `json:"name"`
-	// Owner is the user who owns the playlist
-	Owner struct {
-		// ExternalURLs is the known external URLs for this user.
-		ExternalURLs ExternalURLs `json:"external_urls"`
-		// Href is a link to the Web API endpoint for this user.
-		Href string `json:"href"`
-		// ID is the Spotify user ID for the user.
-		ID string `json:"id"`
-		// Type is the object type: "user".
+type PlaybackObject struct {
+	// Device is the device that is currently active.
+	Device struct {
+		// ID is the device ID. This ID is unique and persistent to some extent.
+		// However, this is not guaranteed, and any cached "device_id" should periodically be cleared out and refetched as necessary.
+		ID *string `json:"id"`
+		// Active if this device is the currently active device.
+		Active bool `json:"is_active"`
+		// PrivateSession if this device is currently in a private session.
+		PrivateSession bool `json:"is_private_session"`
+		// Restricted is whether controlling this device is restricted.
+		// At present, if this is true, then no Web API commands will be accepted by this device.
+		Restricted bool `json:"is_restricted"`
+		// Name is a human-readable name for the device.
+		Name string `json:"name"`
+		// Type is the device type, such as "computer", "smartphone" or "speaker".
 		Type string `json:"type"`
-		// URI is the Spotify URI for the user.
-		URI string `json:"uri"`
-		// DisplayName is the name displayed on the user's profile. null if not available.
-		DisplayName *string `json:"display_name"`
-	} `json:"owner"`
-	// Public is the playlist's public/private status.
-	Public *bool `json:"public"`
-	// SnapshotID is the version identifier for the current playlist.
-	SnapshotID string `json:"snapshot_id"`
-	// Items is the items of the playlist.
-	Items Page[PlaylistTrackObject] `json:"items"`
-	// Type is the object type: "playlist".
-	Type string `json:"type"`
-	// URI is the Spotify URI for the playlist.
-	URI string `json:"uri"`
-}
-
-type SimplifiedPlaylistObject struct {
-	// Collaborative is true if the owner allows other users to modify the playlist.
-	Collaborative bool `json:"collaborative"`
-	// Description is the playlist description. Only returned for modified, verified playlists, otherwise null.
-	Description *string `json:"description"`
-	// ExternalURLs is the known external URLs for this playlist.
-	ExternalURLs ExternalURLs `json:"external_urls"`
-	// Href is a link to the Web API endpoint providing full details of the playlist.
-	Href string `json:"href"`
-	// ID is the Spotify ID for the playlist
-	ID string `json:"id"`
-	// Images for the playlist.
-	Images []ImageObject `json:"images"`
-	// Name is the name of the playlist.
-	Name string `json:"name"`
-	// Owner is the user who owns the playlist
-	Owner struct {
-		// ExternalURLs is the known external URLs for this user.
-		ExternalURLs ExternalURLs `json:"external_urls"`
-		// Href is a link to the Web API endpoint for this user.
-		Href string `json:"href"`
-		// ID is the Spotify user ID for the user.
-		ID string `json:"id"`
-		// Type is the object type: "user".
+		// VolumePercent is the current volume in percent.
+		VolumePercent *int `json:"volume_percent"`
+		// SupportsVolume if this device can be used to set the volume.
+		SupportsVolume bool `json:"supports_volume"`
+	} `json:"device"`
+	// RepeatState is the repeat state. Possible values are "off", "track", "context".
+	RepeatState string `json:"repeat_state"`
+	// ShuffleState is whether shuffle is on or off.
+	ShuffleState bool `json:"shuffle_state"`
+	// Context is the context the playback. Can be null.
+	Context *struct {
+		// Type is the object type, e.g. "artist", "playlist", "album", "show".
 		Type string `json:"type"`
-		// URI is the Spotify URI for the user.
-		URI string `json:"uri"`
-		// DisplayName is the name displayed on the user's profile. null if not available.
-		DisplayName *string `json:"display_name"`
-	} `json:"owner"`
-	// Public is the playlist's public/private status.
-	Public *bool `json:"public"`
-	// SnapshotID is the version identifier for the current playlist.
-	SnapshotID string `json:"snapshot_id"`
-	// Items is a collection containing a link [Href] to the Web API endpoint where full details of the playlist's items can be retrieved,
-	// along with the total number of items in the playlist.
-	// A track object may be null. This can happen if a track is no longer available.
-	Items *struct {
-		// Href is a link to the Web API endpoint where full details of the playlist's tracks can be retrieved.
+		// Href is a link to the Web API endpoint providing full details of the track.
 		Href string `json:"href"`
-		// Total is the number of tracks in the playlist.
-		Total int `json:"total"`
-	} `json:"items"`
-	// Type is the object type: "playlist".
-	Type string `json:"type"`
-	// URI is the Spotify URI for the playlist.
-	URI string `json:"uri"`
-}
-
-type PlaylistTrackObject struct {
-	// AddedAt is the date and time the track or episode was added. Note: some very old playlists may return null in this field.
-	AddedAt *string `json:"added_at"`
-	// AddedBy is the Spotify user who added the track or episode. Note: some very old playlists may return null in this field.
-	AddedBy *struct {
-		// ExternalURLs is the known external URLs for this user.
+		// ExternalURLs for this context.
 		ExternalURLs ExternalURLs `json:"external_urls"`
-		// Href is a link to the Web API endpoint for this user.
-		Href string `json:"href"`
-		// ID is the Spotify user ID for the user.
-		ID string `json:"id"`
-		// Type is the object type: "user".
-		Type string `json:"type"`
-		// URI is the Spotify URI for the user.
+		// URI is the Spotify URI for the context.
 		URI string `json:"uri"`
-	} `json:"added_by"`
-	// Local is whether this track or episode is a local file or not.
-	Local bool `json:"is_local"`
-	// Item is the information about the track or episode. TODO update documentation
+	} `json:"context"`
+	// Timestamp is the unix millisecond timestamp when the playback state was last changed (play, pause, skip, scrub, new song, etc.).
+	Timestamp int `json:"timestamp"`
+	// ProgressMs is the progress into the currently playing track or episode. Can be null.
+	ProgressMs *int `json:"progress_ms"`
+	// Playing is if something is currently playing, return true.
+	Playing bool `json:"is_playing"`
+	// Item is the currently playing track or episode. Can be null. TODO update documentation
 	Track *struct {
 		// Album is the album on which the track appears.
 		// The album object includes a link in href to full information about the album.
@@ -299,28 +233,120 @@ type PlaylistTrackObject struct {
 			TotalEpisodes int `json:"total_episodes"`
 		} `json:"show"`
 	}
+	// CurrentlyPlayingType is the object type of the currently playing item.
+	// Can be one of "track", "episode", "ad" or "unknown".
+	CurrentlyPlayingType string `json:"currently_playing_type"`
+	// Actions is the list of actions allowed to update the user interface based on which playback actions are available within the current context.
+	Actions struct {
+		// InterruptingPlayback is for interrupting playback. Optional field.
+		InterruptingPlayback bool `json:"interrupting_playback,omitempty"`
+		// Pausing is for pausing. Optional field.
+		Pausing bool `json:"pausing,omitempty"`
+		// Resuming is for resuming. Optional field.
+		Resuming bool `json:"resuming,omitempty"`
+		// Seeking is for seeking playback location. Optional field.
+		Seeking bool `json:"seeking,omitempty"`
+		// SkippingNext is for skipping to the next context. Optional field.
+		SkippingNext bool `json:"skipping_next,omitempty"`
+		// SkippingPrevious is for skipping to the previous context. Optional field.
+		SkippingPrevious bool `json:"skipping_prev,omitempty"`
+		// TogglingRepeatContext is for toggling the repeat context flag. Optional field.
+		TogglingRepeatContext bool `json:"toggling_repeat_context,omitempty"`
+		// TogglingShuffle is for toggling shuffle flag. Optional field.
+		TogglingShuffle bool `json:"toggling_shuffle,omitempty"`
+		// TogglingRepeatTrack is for toggling the repeat track flag. Optional field.
+		TogglingRepeatTrack bool `json:"toggling_repeat_track,omitempty"`
+		// TransferringPlayback is for transferring playback between devices. Optional field.
+		TransferringPlayback bool `json:"transferring_playback,omitempty"`
+	} `json:"actions"`
 }
 
-func (p *PlaylistTrackObject) UnmarshalJSON(data []byte) error {
+func (p *PlaybackObject) UnmarshalJSON(data []byte) error {
 	var raw struct {
-		AddedAt *string `json:"added_at"`
-		AddedBy *struct {
+		// Device is the device that is currently active.
+		Device struct {
+			// ID is the device ID. This ID is unique and persistent to some extent.
+			// However, this is not guaranteed, and any cached "device_id" should periodically be cleared out and refetched as necessary.
+			ID *string `json:"id"`
+			// Active if this device is the currently active device.
+			Active bool `json:"is_active"`
+			// PrivateSession if this device is currently in a private session.
+			PrivateSession bool `json:"is_private_session"`
+			// Restricted is whether controlling this device is restricted.
+			// At present, if this is true, then no Web API commands will be accepted by this device.
+			Restricted bool `json:"is_restricted"`
+			// Name is a human-readable name for the device.
+			Name string `json:"name"`
+			// Type is the device type, such as "computer", "smartphone" or "speaker".
+			Type string `json:"type"`
+			// VolumePercent is the current volume in percent.
+			VolumePercent *int `json:"volume_percent"`
+			// SupportsVolume if this device can be used to set the volume.
+			SupportsVolume bool `json:"supports_volume"`
+		} `json:"device"`
+		// RepeatState is the repeat state. Possible values are "off", "track", "context".
+		RepeatState string `json:"repeat_state"`
+		// ShuffleState is whether shuffle is on or off.
+		ShuffleState bool `json:"shuffle_state"`
+		// Context is the context the playback. Can be null.
+		Context *struct {
+			// Type is the object type, e.g. "artist", "playlist", "album", "show".
+			Type string `json:"type"`
+			// Href is a link to the Web API endpoint providing full details of the track.
+			Href string `json:"href"`
+			// ExternalURLs for this context.
 			ExternalURLs ExternalURLs `json:"external_urls"`
-			Href         string       `json:"href"`
-			ID           string       `json:"id"`
-			Type         string       `json:"type"`
-			URI          string       `json:"uri"`
-		} `json:"added_by"`
-		Local bool            `json:"is_local"`
-		Item  json.RawMessage `json:"item"`
+			// URI is the Spotify URI for the context.
+			URI string `json:"uri"`
+		} `json:"context"`
+		// Timestamp is the unix millisecond timestamp when the playback state was last changed (play, pause, skip, scrub, new song, etc.).
+		Timestamp int `json:"timestamp"`
+		// ProgressMs is the progress into the currently playing track or episode. Can be null.
+		ProgressMs *int `json:"progress_ms"`
+		// Playing is if something is currently playing, return true.
+		Playing bool `json:"is_playing"`
+		// Item is the currently playing track or episode. Can be null. TODO update documentation
+		Item json.RawMessage `json:"item"`
+		// CurrentlyPlayingType is the object type of the currently playing item.
+		// Can be one of "track", "episode", "ad" or "unknown".
+		CurrentlyPlayingType string `json:"currently_playing_type"`
+		// Actions is the list of actions allowed to update the user interface based on which playback actions are available within the current context.
+		Actions struct {
+			// InterruptingPlayback is for interrupting playback. Optional field.
+			InterruptingPlayback bool `json:"interrupting_playback,omitempty"`
+			// Pausing is for pausing. Optional field.
+			Pausing bool `json:"pausing,omitempty"`
+			// Resuming is for resuming. Optional field.
+			Resuming bool `json:"resuming,omitempty"`
+			// Seeking is for seeking playback location. Optional field.
+			Seeking bool `json:"seeking,omitempty"`
+			// SkippingNext is for skipping to the next context. Optional field.
+			SkippingNext bool `json:"skipping_next,omitempty"`
+			// SkippingPrevious is for skipping to the previous context. Optional field.
+			SkippingPrevious bool `json:"skipping_prev,omitempty"`
+			// TogglingRepeatContext is for toggling the repeat context flag. Optional field.
+			TogglingRepeatContext bool `json:"toggling_repeat_context,omitempty"`
+			// TogglingShuffle is for toggling shuffle flag. Optional field.
+			TogglingShuffle bool `json:"toggling_shuffle,omitempty"`
+			// TogglingRepeatTrack is for toggling the repeat track flag. Optional field.
+			TogglingRepeatTrack bool `json:"toggling_repeat_track,omitempty"`
+			// TransferringPlayback is for transferring playback between devices. Optional field.
+			TransferringPlayback bool `json:"transferring_playback,omitempty"`
+		} `json:"actions"`
 	}
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
 
-	p.AddedAt = raw.AddedAt
-	p.AddedBy = raw.AddedBy
-	p.Local = raw.Local
+	p.Device = raw.Device
+	p.RepeatState = raw.RepeatState
+	p.ShuffleState = raw.ShuffleState
+	p.Context = raw.Context
+	p.Timestamp = raw.Timestamp
+	p.ProgressMs = raw.ProgressMs
+	p.Playing = raw.Playing
+	p.CurrentlyPlayingType = raw.CurrentlyPlayingType
+	p.Actions = raw.Actions
 
 	if raw.Item == nil {
 		return nil
@@ -533,63 +559,4 @@ func (p *PlaylistTrackObject) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
-}
-
-type PlaylistDetailRequest struct {
-	// Name is the new name for the playlist.
-	Name string `json:"name"`
-	// Public is the playlist's public/private status.
-	Public *bool `json:"public"`
-	// Collaborative if true, the playlist will become collaborative and other users will be able to modify the playlist in their Spotify client.
-	// You can only set collaborative to true on non-public playlists.
-	Collaborative bool `json:"collaborative"`
-	// Description is the value for playlist description as displayed in Spotify Clients and in the Web API.
-	Description string `json:"description"`
-}
-
-type PlaylistItemsRequest struct {
-	// URIs is the list of Spotify URIs to set, can be track or episode URIs.
-	URIs []string `json:"uris,omitempty"`
-	// RangeStart is the position of the first item to be reordered.
-	RangeStart *int `json:"range_start,omitempty"`
-	// InsertBefore is the position where the items should be inserted.
-	InsertBefore *int `json:"insert_before,omitempty"`
-	// RangeLength is the amount of items to be reordered.
-	RangeLength *int `json:"range_length,omitempty"`
-	// SnapshotID is the playlist's snapshot ID against which you want to make the changes.
-	SnapshotID *string `json:"snapshot_id,omitempty"`
-}
-
-type AddItemToPlaylistRequest struct {
-	// URIs is an array of the Spotify URIs to add.
-	URIs []string `json:"uris,omitempty"`
-	// Position is the position to insert the items, a zero-based index.
-	Position *int `json:"position,omitempty"`
-}
-
-type RemovePlaylistItemsRequest struct {
-	// Items is an array of objects containing Spotify URIs of the tracks or episodes to remove.
-	Items []struct {
-		// URI is the Spotify URI.
-		URI string `json:"uri"`
-	} `json:"items"`
-	// SnapshotID is the playlist's snapshot ID against which you want to make the changes.
-	SnapshotID string `json:"snapshot_id"`
-}
-
-type CreatePlaylistRequest struct {
-	// Name is the name for the new playlist.
-	// This name does not need to be unique; a user may have several playlists with the same name.
-	Name string `json:"name"`
-	// Public is the playlist's public/private status. It defaults to true.
-	Public *bool `json:"public,omitempty"`
-	// Collaborative is true if the playlist will be collaborative. It defaults to false.
-	Collaborative *bool `json:"collaborative,omitempty"`
-	// Description is the value for playlist description as displayed in Spotify Clients and in the Web API.
-	Description *string `json:"description,omitempty"`
-}
-
-type playlistOperationResponse struct {
-	// SnapshotID is a snapshot ID for the playlist.
-	SnapshotID string `json:"snapshot_id"`
 }

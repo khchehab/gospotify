@@ -24,3 +24,4 @@ Below is a TODO list of endpoints to implement.
 - [ ] Test the endpoints in some way, whether manually or automated, though preferable automated.
 - [ ] Refactor code to abstract common functionalities (especially in Client struct).
 - [ ] Find a way to reduce the parameters or make them pluggable.
+- [ ] Check for any TODO points in the code to fix or change.
