@@ -22,8 +22,22 @@ type queryParameters struct {
 	// includeGroups is a list of keywords that will be used to filter the response.
 	// If not supplied, all album types will be returned. Valid values are album, single, appears_on, compilation.
 	includeGroups []string
+	// includeExternal if include_external=audio is specified it signals that the client can play externally hosted audio content, and marks the content as playable in the response.
+	// By default externally hosted audio content is marked as unplayable in the response.
+	includeExternal *string
+	// fields filters for the query: a comma-separated list of the fields to return.
+	// If omitted, all fields are returned.
+	// A dot separator can be used to specify non-reoccurring fields, while parentheses can be used to specify reoccurring fields within objects.
+	// Use multiple parentheses to drill down into nested objects.
+	// Fields can be excluded by prefixing them with an exclamation mark.
+	fields *string
+	// additionalTypes is a comma-separated list of item types that your client supports besides the default track type.
+	// Valid types are: track and episode.
+	additionalTypes []string
 	// uris is a list of Spotify URIs.
 	uris []string
+	// position is the position to insert the items, a zero-based index.
+	position *int
 }
 
 // applyQueryParameters applies the options to the queryParameters.
@@ -58,8 +72,20 @@ func (p queryParameters) toQuery() string {
 	if len(p.includeGroups) > 0 {
 		query.Set("include_groups", strings.Join(p.includeGroups, ","))
 	}
+	if p.includeExternal != nil {
+		query.Set("include_external", *p.includeExternal)
+	}
+	if p.fields != nil {
+		query.Set("fields", *p.fields)
+	}
+	if len(p.additionalTypes) > 0 {
+		query.Set("additional_types", strings.Join(p.additionalTypes, ","))
+	}
 	if len(p.uris) > 0 {
 		query.Set("uris", strings.Join(p.uris, ","))
+	}
+	if p.position != nil {
+		query.Set("position", strconv.Itoa(*p.position))
 	}
 	return query.Encode()
 }
@@ -118,9 +144,37 @@ func WithIncludeGroups(includeGroups ...string) QueryOption {
 	}
 }
 
-// WithURIs sets the URIs for the content to be returned.
+// WithIncludeExternal sets the include external for the content to be returned.
+func WithIncludeExternal(includeExternal string) QueryOption {
+	return func(p *queryParameters) {
+		p.includeExternal = &includeExternal
+	}
+}
+
+// WithFields sets the fields for the content to be returned.
+func WithFields(fields string) QueryOption {
+	return func(p *queryParameters) {
+		p.fields = &fields
+	}
+}
+
+// WithAdditionalTypes sets the additional types for the content to be returned.
+func WithAdditionalTypes(additionalTypes ...string) QueryOption {
+	return func(p *queryParameters) {
+		p.additionalTypes = additionalTypes
+	}
+}
+
+// WithURIs sets the specified Spotify URIs.
 func WithURIs(uris ...string) QueryOption {
 	return func(p *queryParameters) {
 		p.uris = uris
+	}
+}
+
+// WithPosition sets the position to insert the items, a zero-based index.
+func WithPosition(position int) QueryOption {
+	return func(p *queryParameters) {
+		p.position = &position
 	}
 }

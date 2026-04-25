@@ -1,12 +1,18 @@
 package gospotify
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 // GetShow gets Spotify catalog information for a single show identified by its unique Spotify ID.
 //
 // QueryOptions that can be used are:
 // * [WithMarket]: An ISO 3166-1 alpha-2 country code.
 func (c *Client) GetShow(ctx context.Context, id string, opts ...QueryOption) (*ShowObject, error) {
+	if id == "" {
+		return nil, errors.New("id cannot be empty")
+	}
 	var show ShowObject
 	if err := c.get(ctx, "/shows/"+id, &show, opts...); err != nil {
 		return nil, err
@@ -21,6 +27,9 @@ func (c *Client) GetShow(ctx context.Context, id string, opts ...QueryOption) (*
 // * [WithLimit]: The maximum number of items to return.
 // * [WithOffset]: The index of the first item to return.
 func (c *Client) GetShowEpisodes(ctx context.Context, id string, opts ...QueryOption) (*Page[ShowEpisode], error) {
+	if id == "" {
+		return nil, errors.New("id cannot be empty")
+	}
 	var showEpisodes Page[ShowEpisode]
 	if err := c.get(ctx, "/shows/"+id+"/episodes", &showEpisodes, opts...); err != nil {
 		return nil, err

@@ -1,12 +1,18 @@
 package gospotify
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 // GetTrack gets Spotify catalog information for a single track identified by its unique Spotify ID.
 //
 // QueryOptions that can be used are:
 // * [WithMarket]: An ISO 3166-1 alpha-2 country code.
 func (c *Client) GetTrack(ctx context.Context, id string, opts ...QueryOption) (*TrackObject, error) {
+	if id == "" {
+		return nil, errors.New("id cannot be empty")
+	}
 	var track TrackObject
 	if err := c.get(ctx, "/tracks/"+id, &track, opts...); err != nil {
 		return nil, err

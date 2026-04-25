@@ -1,6 +1,9 @@
 package gospotify
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 // GetAudiobook gets Spotify catalog information for a single audiobook.
 // Audiobooks are only available within the US, UK, Canada, Ireland, New Zealand and Australia markets.
@@ -8,6 +11,9 @@ import "context"
 // QueryOptions that can be used are:
 // * [WithMarket]: An ISO 3166-1 alpha-2 country code.
 func (c *Client) GetAudiobook(ctx context.Context, id string, opts ...QueryOption) (*AudiobookObject, error) {
+	if id == "" {
+		return nil, errors.New("id cannot be empty")
+	}
 	var audiobook AudiobookObject
 	if err := c.get(ctx, "/audiobooks/"+id, &audiobook, opts...); err != nil {
 		return nil, err
@@ -23,6 +29,9 @@ func (c *Client) GetAudiobook(ctx context.Context, id string, opts ...QueryOptio
 // * [WithLimit]: The maximum number of items to return.
 // * [WithOffset]: The index of the first item to return.
 func (c *Client) GetAudiobookChapters(ctx context.Context, id string, opts ...QueryOption) (*Page[AudiobookChapter], error) {
+	if id == "" {
+		return nil, errors.New("id cannot be empty")
+	}
 	var audiobookChapters Page[AudiobookChapter]
 	if err := c.get(ctx, "/audiobooks/"+id+"/chapters", &audiobookChapters, opts...); err != nil {
 		return nil, err

@@ -28,7 +28,7 @@ type AlbumObject struct {
 	// URI is the Spotify URI for the album.
 	URI string `json:"uri"`
 	// Artists are the artists of the album. Each artist object includes a link in href to more detailed information about the artist.
-	Artists []struct { // called SimplifiedArtistObject
+	Artists []struct {
 		// ExternalURLs is the known external URLs for this artist.
 		ExternalURLs ExternalURLs `json:"external_urls"`
 		// Href is a link to the Web API endpoint providing full details of the artist.
