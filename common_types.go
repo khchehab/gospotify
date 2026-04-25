@@ -109,3 +109,14 @@ type NarratorObject struct {
 	// Name is the name of the Narrator.
 	Name string `json:"name"`
 }
+
+type ContextObject struct {
+	// Type is the object type, e.g. "artist", "playlist", "album", "show".
+	Type string `json:"type"`
+	// Href is a link to the Web API endpoint providing full details of the track.
+	Href string `json:"href"`
+	// ExternalURLs for this context.
+	ExternalURLs ExternalURLs `json:"external_urls"`
+	// URI is the Spotify URI for the context.
+	URI string `json:"uri"`
+}
