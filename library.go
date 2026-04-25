@@ -26,7 +26,7 @@ func (c *Client) RemoveItemsFromLibrary(ctx context.Context, uris []string) erro
 	if len(uris) == 0 {
 		return errors.New("uris cannot be empty")
 	}
-	if err := c.delete(ctx, concatenateURIs("/me/library", uris)); err != nil {
+	if err := c.delete(ctx, concatenateURIs("/me/library", uris), nil, nil); err != nil {
 		return err
 	}
 	return nil

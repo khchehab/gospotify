@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -208,16 +209,16 @@ func TestGet_OptsPassedThrough(t *testing.T) {
 // ---- buildURL ----
 
 func TestBuildURL_NoOpts(t *testing.T) {
-	client := newTestClient("https://api.spotify.com/v1")
+	client := newTestClient("http://unused")
 	got := client.buildURL("/tracks/1")
-	want := "https://api.spotify.com/v1/tracks/1"
+	want := "http://unused/tracks/1"
 	if got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
 
 func TestBuildURL_WithOpts_NoExistingQuery(t *testing.T) {
-	client := newTestClient("https://api.spotify.com/v1")
+	client := newTestClient("http://unused")
 	got := client.buildURL("/me/top/artists", WithLimit(10))
 	parsed, err := url.Parse(got)
 	if err != nil {
@@ -233,7 +234,7 @@ func TestBuildURL_WithOpts_NoExistingQuery(t *testing.T) {
 }
 
 func TestBuildURL_WithOpts_ExistingQuery(t *testing.T) {
-	client := newTestClient("https://api.spotify.com/v1")
+	client := newTestClient("http://unused")
 	got := client.buildURL("/me/following?type=artist", WithLimit(5))
 	parsed, err := url.Parse(got)
 	if err != nil {
@@ -252,19 +253,251 @@ func TestBuildURL_WithOpts_ExistingQuery(t *testing.T) {
 }
 
 func TestBuildURL_NoOpts_EndpointWithExistingQuery_Unchanged(t *testing.T) {
-	client := newTestClient("https://api.spotify.com/v1")
+	client := newTestClient("http://unused")
 	got := client.buildURL("/me/following?type=artist")
-	want := "https://api.spotify.com/v1/me/following?type=artist"
+	want := "http://unused/me/following?type=artist"
 	if got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
 
 func TestBuildURL_NoOpts_NoQueryAppended(t *testing.T) {
-	client := newTestClient("https://api.spotify.com/v1")
+	client := newTestClient("http://unused")
 	got := client.buildURL("/me")
 	if strings.Contains(got, "?") {
 		t.Errorf("expected no '?' in URL for no-opts call, got: %q", got)
+	}
+}
+
+// ---- post ----
+
+func TestPost_200_UnmarshalsResponseBody(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if r.Header.Get("Content-Type") != "application/json" {
+			t.Errorf("expected Content-Type application/json, got %q", r.Header.Get("Content-Type"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"name":"created"}`))
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	var result testPayload
+	err := client.post(context.Background(), "", testPayload{Name: "input"}, &result)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Name != "created" {
+		t.Errorf("got Name %q, want created", result.Name)
+	}
+}
+
+func TestPost_NilBody_NoContentTypeHeader(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Content-Type") != "" {
+			t.Errorf("expected no Content-Type, got %q", r.Header.Get("Content-Type"))
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	err := client.post(context.Background(), "", nil, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestPost_Non200_ReturnsErrorResponse(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(`{"error":{"status":403,"message":"Forbidden"}}`))
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	err := client.post(context.Background(), "", nil, nil)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	var errResp *ErrorResponse
+	if !errors.As(err, &errResp) {
+		t.Fatalf("expected *ErrorResponse, got %T", err)
+	}
+	if errResp.ErrorObject.Status != 403 {
+		t.Errorf("got status %d, want 403", errResp.ErrorObject.Status)
+	}
+}
+
+func TestPost_NilResponse_NoUnmarshal(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	// passing nil response means we don't try to unmarshal — should not panic or error
+	err := client.post(context.Background(), "", nil, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+// ---- put ----
+
+func TestPut_200_WithJSONBody(t *testing.T) {
+	var capturedBody []byte
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPut {
+			t.Errorf("expected PUT, got %s", r.Method)
+		}
+		capturedBody, _ = io.ReadAll(r.Body)
+		if r.Header.Get("Content-Type") != "application/json" {
+			t.Errorf("expected Content-Type application/json, got %q", r.Header.Get("Content-Type"))
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"name":"updated"}`))
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	var result testPayload
+	err := client.put(context.Background(), "", testPayload{Name: "input"}, "", &result)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Name != "updated" {
+		t.Errorf("got Name %q, want updated", result.Name)
+	}
+	var sent testPayload
+	if err := json.Unmarshal(capturedBody, &sent); err != nil {
+		t.Fatalf("failed to unmarshal sent body: %v", err)
+	}
+	if sent.Name != "input" {
+		t.Errorf("got sent Name %q, want input", sent.Name)
+	}
+}
+
+func TestPut_WithRawBytesBody_CustomContentType(t *testing.T) {
+	var capturedContentType string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedContentType = r.Header.Get("Content-Type")
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	err := client.put(context.Background(), "", []byte("rawdata"), "image/jpeg", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if capturedContentType != "image/jpeg" {
+		t.Errorf("got Content-Type %q, want image/jpeg", capturedContentType)
+	}
+}
+
+func TestPut_Non200_ReturnsErrorResponse(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(`{"error":{"status":401,"message":"Unauthorized"}}`))
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	err := client.put(context.Background(), "", nil, "", nil)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	var errResp *ErrorResponse
+	if !errors.As(err, &errResp) {
+		t.Fatalf("expected *ErrorResponse, got %T", err)
+	}
+	if errResp.ErrorObject.Status != 401 {
+		t.Errorf("got status %d, want 401", errResp.ErrorObject.Status)
+	}
+}
+
+func TestPut_NilBody_NoContentTypeSet(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Content-Type") != "" {
+			t.Errorf("expected no Content-Type header, got %q", r.Header.Get("Content-Type"))
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	err := client.put(context.Background(), "", nil, "", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+// ---- delete ----
+
+func TestDelete_200_UnmarshalsResponseBody(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			t.Errorf("expected DELETE, got %s", r.Method)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"name":"deleted"}`))
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	var result testPayload
+	err := client.delete(context.Background(), "", nil, &result)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Name != "deleted" {
+		t.Errorf("got Name %q, want deleted", result.Name)
+	}
+}
+
+func TestDelete_WithBody_SetsContentTypeJSON(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Content-Type") != "application/json" {
+			t.Errorf("expected Content-Type application/json, got %q", r.Header.Get("Content-Type"))
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	err := client.delete(context.Background(), "", testPayload{Name: "item"}, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestDelete_Non200_ReturnsErrorResponse(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`{"error":{"status":404,"message":"Not found"}}`))
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	err := client.delete(context.Background(), "", nil, nil)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	var errResp *ErrorResponse
+	if !errors.As(err, &errResp) {
+		t.Fatalf("expected *ErrorResponse, got %T", err)
+	}
+	if errResp.ErrorObject.Status != 404 {
+		t.Errorf("got status %d, want 404", errResp.ErrorObject.Status)
 	}
 }
 

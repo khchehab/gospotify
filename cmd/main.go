@@ -21,7 +21,7 @@ func main() {
 	}
 
 	c := gospotify.NewClient(ts)
-	items, err := c.CheckUserSavedItems(context.Background(), gospotify.WithURIs("spotify:track:7a3LWj5xSFhFRYmztS8wgK", "spotify:album:4aawyAB9vmqN3uQ7FjRGTy", "spotify:artist:2takcwOaAZWiXQijPHIx7B"))
+	items, err := c.CheckUserSavedItems(context.Background(), []string{"spotify:track:7a3LWj5xSFhFRYmztS8wgK", "spotify:album:4aawyAB9vmqN3uQ7FjRGTy", "spotify:artist:2takcwOaAZWiXQijPHIx7B"})
 	if err != nil {
 		fmt.Println("error:", err)
 		return

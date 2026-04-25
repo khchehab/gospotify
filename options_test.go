@@ -172,6 +172,256 @@ func TestWithMarket_PointerIndependence(t *testing.T) {
 	}
 }
 
+// ---- WithIncludeGroups ----
+
+func TestWithIncludeGroups(t *testing.T) {
+	cases := []struct {
+		name  string
+		input []string
+		want  []string
+	}{
+		{"single", []string{"album"}, []string{"album"}},
+		{"multiple", []string{"album", "single", "appears_on"}, []string{"album", "single", "appears_on"}},
+		{"empty_slice", []string{}, []string{}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := queryParameters{}
+			WithIncludeGroups(tc.input...)(&p)
+			if len(p.includeGroups) != len(tc.want) {
+				t.Fatalf("got len %d, want %d", len(p.includeGroups), len(tc.want))
+			}
+			for i, v := range tc.want {
+				if p.includeGroups[i] != v {
+					t.Errorf("index %d: got %q, want %q", i, p.includeGroups[i], v)
+				}
+			}
+		})
+	}
+}
+
+// ---- WithIncludeExternal ----
+
+func TestWithIncludeExternal(t *testing.T) {
+	cases := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{"audio", "audio", "audio"},
+		{"empty_string", "", ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := queryParameters{}
+			WithIncludeExternal(tc.input)(&p)
+			if p.includeExternal == nil {
+				t.Fatal("includeExternal is nil")
+			}
+			if *p.includeExternal != tc.want {
+				t.Errorf("got %q, want %q", *p.includeExternal, tc.want)
+			}
+		})
+	}
+}
+
+// ---- WithFields ----
+
+func TestWithFields(t *testing.T) {
+	cases := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{"single_field", "name", "name"},
+		{"dot_notation", "tracks.items(track(name,id))", "tracks.items(track(name,id))"},
+		{"exclusion", "!available_markets", "!available_markets"},
+		{"empty_string", "", ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := queryParameters{}
+			WithFields(tc.input)(&p)
+			if p.fields == nil {
+				t.Fatal("fields is nil")
+			}
+			if *p.fields != tc.want {
+				t.Errorf("got %q, want %q", *p.fields, tc.want)
+			}
+		})
+	}
+}
+
+// ---- WithAdditionalTypes ----
+
+func TestWithAdditionalTypes(t *testing.T) {
+	cases := []struct {
+		name  string
+		input []string
+		want  []string
+	}{
+		{"single", []string{"episode"}, []string{"episode"}},
+		{"multiple", []string{"track", "episode"}, []string{"track", "episode"}},
+		{"empty_slice", []string{}, []string{}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := queryParameters{}
+			WithAdditionalTypes(tc.input...)(&p)
+			if len(p.additionalTypes) != len(tc.want) {
+				t.Fatalf("got len %d, want %d", len(p.additionalTypes), len(tc.want))
+			}
+			for i, v := range tc.want {
+				if p.additionalTypes[i] != v {
+					t.Errorf("index %d: got %q, want %q", i, p.additionalTypes[i], v)
+				}
+			}
+		})
+	}
+}
+
+// ---- WithURIs ----
+
+func TestWithURIs(t *testing.T) {
+	cases := []struct {
+		name  string
+		input []string
+		want  []string
+	}{
+		{"single", []string{"spotify:track:abc"}, []string{"spotify:track:abc"}},
+		{"multiple", []string{"spotify:track:abc", "spotify:album:xyz"}, []string{"spotify:track:abc", "spotify:album:xyz"}},
+		{"empty_slice", []string{}, []string{}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := queryParameters{}
+			WithURIs(tc.input...)(&p)
+			if len(p.uris) != len(tc.want) {
+				t.Fatalf("got len %d, want %d", len(p.uris), len(tc.want))
+			}
+			for i, v := range tc.want {
+				if p.uris[i] != v {
+					t.Errorf("index %d: got %q, want %q", i, p.uris[i], v)
+				}
+			}
+		})
+	}
+}
+
+// ---- WithPosition ----
+
+func TestWithPosition(t *testing.T) {
+	cases := []struct {
+		name  string
+		input int
+		want  int
+	}{
+		{"zero", 0, 0},
+		{"positive", 5, 5},
+		{"large", 1000, 1000},
+		{"negative", -1, -1},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := queryParameters{}
+			WithPosition(tc.input)(&p)
+			if p.position == nil {
+				t.Fatal("position is nil")
+			}
+			if *p.position != tc.want {
+				t.Errorf("got %d, want %d", *p.position, tc.want)
+			}
+		})
+	}
+}
+
+// ---- WithDeviceID ----
+
+func TestWithDeviceID(t *testing.T) {
+	cases := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{"normal_id", "abc123xyz", "abc123xyz"},
+		{"empty_string", "", ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := queryParameters{}
+			WithDeviceID(tc.input)(&p)
+			if p.deviceID == nil {
+				t.Fatal("deviceID is nil")
+			}
+			if *p.deviceID != tc.want {
+				t.Errorf("got %q, want %q", *p.deviceID, tc.want)
+			}
+		})
+	}
+}
+
+func TestWithDeviceID_PointerIndependence(t *testing.T) {
+	val := "device1"
+	p := queryParameters{}
+	WithDeviceID(val)(&p)
+	val = "device2"
+	if *p.deviceID != "device1" {
+		t.Errorf("deviceID mutated after caller change: got %q", *p.deviceID)
+	}
+}
+
+// ---- WithAfterMs ----
+
+func TestWithAfterMs(t *testing.T) {
+	cases := []struct {
+		name  string
+		input int
+		want  int
+	}{
+		{"unix_ms", 1609459200000, 1609459200000},
+		{"zero", 0, 0},
+		{"negative", -1, -1},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := queryParameters{}
+			WithAfterMs(tc.input)(&p)
+			if p.afterMs == nil {
+				t.Fatal("afterMs is nil")
+			}
+			if *p.afterMs != tc.want {
+				t.Errorf("got %d, want %d", *p.afterMs, tc.want)
+			}
+		})
+	}
+}
+
+// ---- WithBeforeMs ----
+
+func TestWithBeforeMs(t *testing.T) {
+	cases := []struct {
+		name  string
+		input int
+		want  int
+	}{
+		{"unix_ms", 1609459200000, 1609459200000},
+		{"zero", 0, 0},
+		{"negative", -1, -1},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := queryParameters{}
+			WithBeforeMs(tc.input)(&p)
+			if p.beforeMs == nil {
+				t.Fatal("beforeMs is nil")
+			}
+			if *p.beforeMs != tc.want {
+				t.Errorf("got %d, want %d", *p.beforeMs, tc.want)
+			}
+		})
+	}
+}
+
 // ---- toQuery ----
 
 func TestToQuery(t *testing.T) {
@@ -277,6 +527,81 @@ func TestToQuery(t *testing.T) {
 			"market_with_limit",
 			queryParameters{market: ptrString("DE"), limit: ptrInt(20)},
 			"limit=20&market=DE",
+		},
+		{
+			"only_include_groups_single",
+			queryParameters{includeGroups: []string{"album"}},
+			"include_groups=album",
+		},
+		{
+			"include_groups_multiple",
+			queryParameters{includeGroups: []string{"album", "single", "compilation"}},
+			"include_groups=album%2Csingle%2Ccompilation",
+		},
+		{
+			"only_include_external",
+			queryParameters{includeExternal: ptrString("audio")},
+			"include_external=audio",
+		},
+		{
+			"only_fields",
+			queryParameters{fields: ptrString("name,id")},
+			"fields=name%2Cid",
+		},
+		{
+			"only_additional_types",
+			queryParameters{additionalTypes: []string{"episode"}},
+			"additional_types=episode",
+		},
+		{
+			"additional_types_multiple",
+			queryParameters{additionalTypes: []string{"track", "episode"}},
+			"additional_types=track%2Cepisode",
+		},
+		{
+			"only_uris_single",
+			queryParameters{uris: []string{"spotify:track:abc"}},
+			"uris=spotify%3Atrack%3Aabc",
+		},
+		{
+			"uris_multiple",
+			queryParameters{uris: []string{"spotify:track:abc", "spotify:album:xyz"}},
+			"uris=spotify%3Atrack%3Aabc%2Cspotify%3Aalbum%3Axyz",
+		},
+		{
+			"only_position",
+			queryParameters{position: ptrInt(3)},
+			"position=3",
+		},
+		{
+			"position_zero",
+			queryParameters{position: ptrInt(0)},
+			"position=0",
+		},
+		{
+			"only_device_id",
+			queryParameters{deviceID: ptrString("dev123")},
+			"device_id=dev123",
+		},
+		{
+			"only_after_ms",
+			queryParameters{afterMs: ptrInt(1609459200000)},
+			"after=1609459200000",
+		},
+		{
+			"only_before_ms",
+			queryParameters{beforeMs: ptrInt(1609459200000)},
+			"before=1609459200000",
+		},
+		{
+			"after_ms_and_limit",
+			queryParameters{afterMs: ptrInt(1000), limit: ptrInt(10)},
+			"after=1000&limit=10",
+		},
+		{
+			"device_id_and_limit",
+			queryParameters{deviceID: ptrString("mydev"), limit: ptrInt(5)},
+			"device_id=mydev&limit=5",
 		},
 	}
 	for _, tc := range cases {
@@ -401,6 +726,90 @@ func TestApplyQueryParameters(t *testing.T) {
 		p := applyQueryParameters(WithMarket("US"), WithMarket("GB"))
 		if *p.market != "GB" {
 			t.Errorf("got %q, want GB", *p.market)
+		}
+	})
+
+	t.Run("single_include_groups", func(t *testing.T) {
+		p := applyQueryParameters(WithIncludeGroups("album", "single"))
+		if len(p.includeGroups) != 2 || p.includeGroups[0] != "album" || p.includeGroups[1] != "single" {
+			t.Errorf("unexpected includeGroups: %v", p.includeGroups)
+		}
+	})
+
+	t.Run("single_include_external", func(t *testing.T) {
+		p := applyQueryParameters(WithIncludeExternal("audio"))
+		if p.includeExternal == nil || *p.includeExternal != "audio" {
+			t.Errorf("unexpected includeExternal: %v", p.includeExternal)
+		}
+	})
+
+	t.Run("single_fields", func(t *testing.T) {
+		p := applyQueryParameters(WithFields("name,id"))
+		if p.fields == nil || *p.fields != "name,id" {
+			t.Errorf("unexpected fields: %v", p.fields)
+		}
+	})
+
+	t.Run("single_additional_types", func(t *testing.T) {
+		p := applyQueryParameters(WithAdditionalTypes("track", "episode"))
+		if len(p.additionalTypes) != 2 || p.additionalTypes[0] != "track" || p.additionalTypes[1] != "episode" {
+			t.Errorf("unexpected additionalTypes: %v", p.additionalTypes)
+		}
+	})
+
+	t.Run("single_uris", func(t *testing.T) {
+		p := applyQueryParameters(WithURIs("spotify:track:abc", "spotify:album:xyz"))
+		if len(p.uris) != 2 || p.uris[0] != "spotify:track:abc" || p.uris[1] != "spotify:album:xyz" {
+			t.Errorf("unexpected uris: %v", p.uris)
+		}
+	})
+
+	t.Run("single_position", func(t *testing.T) {
+		p := applyQueryParameters(WithPosition(3))
+		if p.position == nil || *p.position != 3 {
+			t.Errorf("unexpected position: %v", p.position)
+		}
+	})
+
+	t.Run("single_device_id", func(t *testing.T) {
+		p := applyQueryParameters(WithDeviceID("dev1"))
+		if p.deviceID == nil || *p.deviceID != "dev1" {
+			t.Errorf("unexpected deviceID: %v", p.deviceID)
+		}
+	})
+
+	t.Run("single_after_ms", func(t *testing.T) {
+		p := applyQueryParameters(WithAfterMs(1609459200000))
+		if p.afterMs == nil || *p.afterMs != 1609459200000 {
+			t.Errorf("unexpected afterMs: %v", p.afterMs)
+		}
+	})
+
+	t.Run("single_before_ms", func(t *testing.T) {
+		p := applyQueryParameters(WithBeforeMs(1609459200000))
+		if p.beforeMs == nil || *p.beforeMs != 1609459200000 {
+			t.Errorf("unexpected beforeMs: %v", p.beforeMs)
+		}
+	})
+
+	t.Run("last_write_wins_device_id", func(t *testing.T) {
+		p := applyQueryParameters(WithDeviceID("dev1"), WithDeviceID("dev2"))
+		if *p.deviceID != "dev2" {
+			t.Errorf("got %q, want dev2", *p.deviceID)
+		}
+	})
+
+	t.Run("last_write_wins_fields", func(t *testing.T) {
+		p := applyQueryParameters(WithFields("name"), WithFields("id,uri"))
+		if *p.fields != "id,uri" {
+			t.Errorf("got %q, want id,uri", *p.fields)
+		}
+	})
+
+	t.Run("last_write_wins_position", func(t *testing.T) {
+		p := applyQueryParameters(WithPosition(1), WithPosition(5))
+		if *p.position != 5 {
+			t.Errorf("got %d, want 5", *p.position)
 		}
 	})
 }
