@@ -17,9 +17,10 @@ Below is a TODO list of endpoints to implement.
   - [x] Library
   - [ ] Player
   - [x] Playlists
-  - [ ] Search
+  - [x] Search
   - [x] Shows
   - [x] Tracks
   - [x] Users
+- [ ] Test the endpoints in some way, whether manually or automated, though preferable automated.
 - [ ] Refactor code to abstract common functionalities (especially in Client struct).
 - [ ] Find a way to reduce the parameters or make them pluggable.

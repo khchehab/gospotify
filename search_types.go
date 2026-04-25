@@ -173,6 +173,52 @@ type SearchResult struct {
 	}] `json:"albums"`
 	// Playlists is a page of the playlist result.
 	Playlists Page[struct {
+		// Collaborative is true if the owner allows other users to modify the playlist.
+		Collaborative bool `json:"collaborative"`
+		// Description is the playlist description. Only returned for modified, verified playlists, otherwise null.
+		Description *string `json:"description"`
+		// ExternalURLs is the known external URLs for this playlist.
+		ExternalURLs ExternalURLs `json:"external_urls"`
+		// Href is a link to the Web API endpoint providing full details of the playlist.
+		Href string `json:"href"`
+		// ID is the Spotify ID for the playlist
+		ID string `json:"id"`
+		// Images for the playlist.
+		Images []ImageObject `json:"images"`
+		// Name is the name of the playlist.
+		Name string `json:"name"`
+		// Owner is the user who owns the playlist
+		Owner struct {
+			// ExternalURLs is the known external URLs for this user.
+			ExternalURLs ExternalURLs `json:"external_urls"`
+			// Href is a link to the Web API endpoint for this user.
+			Href string `json:"href"`
+			// ID is the Spotify user ID for the user.
+			ID string `json:"id"`
+			// Type is the object type: "user".
+			Type string `json:"type"`
+			// URI is the Spotify URI for the user.
+			URI string `json:"uri"`
+			// DisplayName is the name displayed on the user's profile. null if not available.
+			DisplayName *string `json:"display_name"`
+		} `json:"owner"`
+		// Public is the playlist's public/private status.
+		Public *bool `json:"public"`
+		// SnapshotID is the version identifier for the current playlist.
+		SnapshotID string `json:"snapshot_id"`
+		// Items is a collection containing a link [Href] to the Web API endpoint where full details of the playlist's items can be retrieved,
+		// along with the total number of items in the playlist.
+		// A track object may be null. This can happen if a track is no longer available.
+		Items *struct {
+			// Href is a link to the Web API endpoint where full details of the playlist's tracks can be retrieved.
+			Href string `json:"href"`
+			// Total is the number of tracks in the playlist.
+			Total int `json:"total"`
+		} `json:"items"`
+		// Type is the object type: "playlist".
+		Type string `json:"type"`
+		// URI is the Spotify URI for the playlist.
+		URI string `json:"uri"`
 	}] `json:"playlists"`
 	// Shows is a page of the show result.
 	Shows Page[struct {
