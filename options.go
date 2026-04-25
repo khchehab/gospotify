@@ -38,6 +38,12 @@ type queryParameters struct {
 	uris []string
 	// position is the position to insert the items, a zero-based index.
 	position *int
+	// deviceID The id of the device this command is targeting.
+	deviceID *string
+	// afterMs is a Unix timestamp in milliseconds. Returns all items after (but not including) this cursor position.
+	afterMs *int
+	// beforeMs is a Unix timestamp in milliseconds. Returns all items before (but not including) this cursor position.
+	beforeMs *int
 }
 
 // applyQueryParameters applies the options to the queryParameters.
@@ -86,6 +92,15 @@ func (p queryParameters) toQuery() string {
 	}
 	if p.position != nil {
 		query.Set("position", strconv.Itoa(*p.position))
+	}
+	if p.deviceID != nil {
+		query.Set("device_id", *p.deviceID)
+	}
+	if p.afterMs != nil {
+		query.Set("after", strconv.Itoa(*p.afterMs))
+	}
+	if p.beforeMs != nil {
+		query.Set("before", strconv.Itoa(*p.beforeMs))
 	}
 	return query.Encode()
 }
@@ -176,5 +191,26 @@ func WithURIs(uris ...string) QueryOption {
 func WithPosition(position int) QueryOption {
 	return func(p *queryParameters) {
 		p.position = &position
+	}
+}
+
+// WithDeviceID sets the device id the command is targeting.
+func WithDeviceID(deviceID string) QueryOption {
+	return func(p *queryParameters) {
+		p.deviceID = &deviceID
+	}
+}
+
+// WithAfterMs sets the cursor position to return all items after (but not including) it.
+func WithAfterMs(afterMs int) QueryOption {
+	return func(p *queryParameters) {
+		p.afterMs = &afterMs
+	}
+}
+
+// WithBeforeMs sets the cursor position to return all items before (but not including) it.
+func WithBeforeMs(beforeMs int) QueryOption {
+	return func(p *queryParameters) {
+		p.beforeMs = &beforeMs
 	}
 }

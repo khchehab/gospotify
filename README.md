@@ -15,7 +15,7 @@ Below is a TODO list of endpoints to implement.
   - [x] Chapters
   - [x] Episodes
   - [x] Library
-  - [ ] Player
+  - [x] Player
   - [x] Playlists
   - [x] Search
   - [x] Shows
