@@ -2,7 +2,6 @@ package gospotify
 
 import (
 	"context"
-	"errors"
 )
 
 // GetEpisode gets Spotify catalog information for a single episode identified by its unique Spotify ID.
@@ -10,8 +9,8 @@ import (
 // QueryOptions that can be used are:
 // * [WithMarket]: An ISO 3166-1 alpha-2 country code.
 func (c *Client) GetEpisode(ctx context.Context, id string, opts ...QueryOption) (*EpisodeObject, error) {
-	if id == "" {
-		return nil, errors.New("id cannot be empty")
+	if err := requireNonEmpty("id", id); err != nil {
+		return nil, err
 	}
 	var episode EpisodeObject
 	if err := c.get(ctx, "/episodes/"+id, &episode, opts...); err != nil {

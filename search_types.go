@@ -1,7 +1,5 @@
 package gospotify
 
-// TODO implement this after finishing with playlists
-
 type SearchResult struct {
 	// Tracks is a page of the track result.
 	Tracks Page[struct {

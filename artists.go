@@ -2,13 +2,12 @@ package gospotify
 
 import (
 	"context"
-	"errors"
 )
 
 // GetArtist gets Spotify catalog information for a single artist identified by their unique Spotify ID.
 func (c *Client) GetArtist(ctx context.Context, id string) (*ArtistObject, error) {
-	if id == "" {
-		return nil, errors.New("id cannot be empty")
+	if err := requireNonEmpty("id", id); err != nil {
+		return nil, err
 	}
 	var artist ArtistObject
 	if err := c.get(ctx, "/artists/"+id, &artist); err != nil {
@@ -25,8 +24,8 @@ func (c *Client) GetArtist(ctx context.Context, id string) (*ArtistObject, error
 // * [WithLimit]: The maximum number of items to return.
 // * [WithOffset]: The index of the first item to return.
 func (c *Client) GetArtistAlbums(ctx context.Context, id string, opts ...QueryOption) (*Page[ArtistAlbum], error) {
-	if id == "" {
-		return nil, errors.New("id cannot be empty")
+	if err := requireNonEmpty("id", id); err != nil {
+		return nil, err
 	}
 	var artistAlbums Page[ArtistAlbum]
 	if err := c.get(ctx, "/artists/"+id+"/albums", &artistAlbums, opts...); err != nil {

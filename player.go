@@ -8,17 +8,19 @@ import (
 
 // GetPlaybackState gets information about the user’s current playback state, including track or episode, progress, and active device.
 // If the playback is not available or not active, the playback object returned will be nil, along with a nil error.
-// TODO this should be improved to return an error instead of `nil, nil`.
 //
 // QueryOptions that can be used are:
 //   - [WithMarket]: An ISO 3166-1 alpha-2 country code.
 //   - [WithAdditionalTypes]: The list of item types that your client supports besides the default track type.
 func (c *Client) GetPlaybackState(ctx context.Context, opts ...QueryOption) (*PlaybackObject, error) {
-	var playback PlaybackObject
+	var playback *PlaybackObject
 	if err := c.get(ctx, "/me/player", &playback, opts...); err != nil {
 		return nil, err
 	}
-	return &playback, nil
+	if playback == nil {
+		return nil, errors.New("playback is not available or active")
+	}
+	return playback, nil
 }
 
 // TransferPlayback transfers playback to a new device and optionally begin playback.
@@ -103,7 +105,10 @@ func (c *Client) SkipToPrevious(ctx context.Context, opts ...QueryOption) error 
 //   - [WithDeviceID]: The id of the device this command is targeting.
 //     If not supplied, the user's currently active device is the target.
 func (c *Client) SeekToPosition(ctx context.Context, positionMs int, opts ...QueryOption) error {
-	return c.put(ctx, concatenatePosition("/me/player/seek", positionMs), nil, "", nil, opts...)
+	return c.put(ctx, appendQueryParams("/me/player/seek", requiredQueryParam{
+		key:   "position_ms",
+		value: positionMs,
+	}), nil, "", nil, opts...)
 }
 
 // SetRepeatMode sets the repeat mode for the user's playback.
@@ -113,14 +118,17 @@ func (c *Client) SeekToPosition(ctx context.Context, positionMs int, opts ...Que
 // QueryOptions that can be used are:
 //   - [WithDeviceID]: The id of the device this command is targeting.
 //     If not supplied, the user's currently active device is the target.
-func (c *Client) SetRepeatMode(ctx context.Context, state string, opts ...QueryOption) error {
-	if state == "" {
-		return errors.New("state cannot be empty")
+func (c *Client) SetRepeatMode(ctx context.Context, state RepeatState, opts ...QueryOption) error {
+	if err := requireNonEmpty("state", string(state)); err != nil {
+		return err
 	}
-	if state != "track" && state != "context" && state != "off" {
+	if state != RepeatOff && state != RepeatTrack && state != RepeatContext {
 		return fmt.Errorf("invalid state: %s", state)
 	}
-	return c.put(ctx, concatenateState("/me/player/repeat", state), nil, "", nil, opts...)
+	return c.put(ctx, appendQueryParams("/me/player/repeat", requiredQueryParam{
+		key:   "state",
+		value: string(state),
+	}), nil, "", nil, opts...)
 }
 
 // SetPlaybackVolume sets the volume for the user’s current playback device.
@@ -131,7 +139,10 @@ func (c *Client) SetRepeatMode(ctx context.Context, state string, opts ...QueryO
 //   - [WithDeviceID]: The id of the device this command is targeting.
 //     If not supplied, the user's currently active device is the target.
 func (c *Client) SetPlaybackVolume(ctx context.Context, volumePercent int, opts ...QueryOption) error {
-	return c.put(ctx, concatenateVolumePercent("/me/player/volume", volumePercent), nil, "", nil, opts...)
+	return c.put(ctx, appendQueryParams("/me/player/volume", requiredQueryParam{
+		key:   "volume_percent",
+		value: volumePercent,
+	}), nil, "", nil, opts...)
 }
 
 // TogglePlaybackShuffle toggles shuffle on or off for user’s playback.
@@ -142,7 +153,10 @@ func (c *Client) SetPlaybackVolume(ctx context.Context, volumePercent int, opts 
 //   - [WithDeviceID]: The id of the device this command is targeting.
 //     If not supplied, the user's currently active device is the target.
 func (c *Client) TogglePlaybackShuffle(ctx context.Context, state bool, opts ...QueryOption) error {
-	return c.put(ctx, concatenateStateB("/me/player/shuffle", state), nil, "", nil, opts...)
+	return c.put(ctx, appendQueryParams("/me/player/shuffle", requiredQueryParam{
+		key:   "state",
+		value: state,
+	}), nil, "", nil, opts...)
 }
 
 // GetRecentlyPlayedTracks gets tracks from the current user's recently played tracks.
@@ -177,30 +191,8 @@ func (c *Client) GetUserQueue(ctx context.Context) (*UserQueue, error) {
 //   - [WithDeviceID]: The id of the device this command is targeting.
 //     If not supplied, the user's currently active device is the target.
 func (c *Client) AddItemToPlaybackQueue(ctx context.Context, uri string, opts ...QueryOption) error {
-	return c.post(ctx, concatenateURI("/me/player/queue", uri), nil, nil, opts...)
-}
-
-// concatenatePosition concatenates the position to the endpoint.
-func concatenatePosition(endpoint string, positionMs int) string {
-	return fmt.Sprintf("%s?position_ms=%d", endpoint, positionMs)
-}
-
-// concatenateVolumePercent concatenates the volume percent to the endpoint.
-func concatenateVolumePercent(endpoint string, volumePercent int) string {
-	return fmt.Sprintf("%s?volume_percent=%d", endpoint, volumePercent)
-}
-
-// concatenateState concatenates the state to the endpoint.
-func concatenateState(endpoint, state string) string {
-	return fmt.Sprintf("%s?state=%s", endpoint, state)
-}
-
-// concatenateStateB concatenates the state (boolean) to the endpoint.
-func concatenateStateB(endpoint string, state bool) string {
-	return fmt.Sprintf("%s?state=%t", endpoint, state)
-}
-
-// concatenateURI concatenates the URI to the endpoint.
-func concatenateURI(endpoint, uri string) string {
-	return fmt.Sprintf("%s?uri=%s", endpoint, uri)
+	return c.post(ctx, appendQueryParams("/me/player/queue", requiredQueryParam{
+		key:   uri,
+		value: uri,
+	}), nil, nil, opts...)
 }

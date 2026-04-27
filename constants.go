@@ -1,62 +1,110 @@
 package gospotify
 
+import (
+	"time"
+)
+
+// Scope represents a scope data type.
+type Scope string
+
+// RepeatState represents a repeat state data type.
+type RepeatState string
+
+// ItemType represents an item type data type.
+type ItemType string
+
+// Valid checks if the item type is valid based on a pre-defined allowed values.
+func (t ItemType) Valid() bool {
+	_, ok := itemTypeMap[t]
+	return ok
+}
+
 const (
-	SpotifyBaseUrl    = "https://api.spotify.com"
-	SpotifyAPIVersion = "/v1"
+	spotifyBaseUrl    = "https://api.spotify.com"
+	spotifyAPIVersion = "/v1"
 
-	////////////
-	// Scopes //
-	////////////
+	authStateLength           = 16
+	authWaitTimeout           = 2 * time.Minute
+	authCodeExchangeTimeout   = 10 * time.Second
+	authServerShutdownTimeout = 5 * time.Second
+)
 
+const (
+	RepeatOff     RepeatState = "off"
+	RepeatTrack   RepeatState = "track"
+	RepeatContext RepeatState = "context"
+)
+
+const (
+	ItemTypeAlbum     ItemType = "album"
+	ItemTypeArtist    ItemType = "artist"
+	ItemTypePlaylist  ItemType = "playlist"
+	ItemTypeTrack     ItemType = "track"
+	ItemTypeShow      ItemType = "show"
+	ItemTypeEpisode   ItemType = "episode"
+	ItemTypeAudiobook ItemType = "audiobook"
+)
+
+var itemTypeMap = map[ItemType]struct{}{
+	ItemTypeAlbum:     {},
+	ItemTypeArtist:    {},
+	ItemTypePlaylist:  {},
+	ItemTypeTrack:     {},
+	ItemTypeShow:      {},
+	ItemTypeEpisode:   {},
+	ItemTypeAudiobook: {},
+}
+
+const (
 	// Images
 
-	ScopeUgcImageUpload = "ugc-image-upload"
+	ScopeUgcImageUpload Scope = "ugc-image-upload"
 
 	// Spotify Connect
 
-	ScopeUserReadPlaybackState    = "user-read-playback-state"
-	ScopeUserModifyPlaybackState  = "user-modify-playback-state"
-	ScopeUserReadCurrentlyPlaying = "user-read-currently-playing"
+	ScopeUserReadPlaybackState    Scope = "user-read-playback-state"
+	ScopeUserModifyPlaybackState  Scope = "user-modify-playback-state"
+	ScopeUserReadCurrentlyPlaying Scope = "user-read-currently-playing"
 
 	// Playback
 
-	ScopeAppRemoteControl = "app-remote-control"
-	ScopeStreaming        = "streaming"
+	ScopeAppRemoteControl Scope = "app-remote-control"
+	ScopeStreaming        Scope = "streaming"
 
 	// Playlists
 
-	ScopePlaylistReadPrivate       = "playlist-read-private"
-	ScopePlaylistReadCollaborative = "playlist-read-collaborative"
-	ScopePlaylistModifyPrivate     = "playlist-modify-private"
-	ScopePlaylistModifyPublic      = "playlist-modify-public"
+	ScopePlaylistReadPrivate       Scope = "playlist-read-private"
+	ScopePlaylistReadCollaborative Scope = "playlist-read-collaborative"
+	ScopePlaylistModifyPrivate     Scope = "playlist-modify-private"
+	ScopePlaylistModifyPublic      Scope = "playlist-modify-public"
 
 	// Follow
 
-	ScopeUserFollowModify = "user-follow-modify"
-	ScopeUserFollowRead   = "user-follow-read"
+	ScopeUserFollowModify Scope = "user-follow-modify"
+	ScopeUserFollowRead   Scope = "user-follow-read"
 
 	// Listening History
 
-	ScopeUserReadPlaybackPosition = "user-read-playback-position"
-	ScopeUserTopRead              = "user-top-read"
-	ScopeUserReadRecentlyPlayed   = "user-read-recently-played"
+	ScopeUserReadPlaybackPosition Scope = "user-read-playback-position"
+	ScopeUserTopRead              Scope = "user-top-read"
+	ScopeUserReadRecentlyPlayed   Scope = "user-read-recently-played"
 
 	// Library
 
-	ScopeUserLibraryModify = "user-library-modify"
-	ScopeUserLibraryRead   = "user-library-read"
+	ScopeUserLibraryModify Scope = "user-library-modify"
+	ScopeUserLibraryRead   Scope = "user-library-read"
 
 	// Users
 
-	ScopeUserReadEmail    = "user-read-email"
-	ScopeUserReadPrivate  = "user-read-private"
-	ScopeUserPersonalized = "user-personalized"
+	ScopeUserReadEmail    Scope = "user-read-email"
+	ScopeUserReadPrivate  Scope = "user-read-private"
+	ScopeUserPersonalized Scope = "user-personalized"
 
 	// Open Access
 
-	ScopeUserSoaLink           = "user-soa-link"
-	ScopeUserSoaUnlink         = "user-soa-unlink"
-	ScopeSoaManageEntitlements = "soa-manage-entitlements"
-	ScopeSoaManagePartner      = "soa-manage-partner"
-	ScopeSoaCreatePartner      = "soa-create-partner"
+	ScopeUserSoaLink           Scope = "user-soa-link"
+	ScopeUserSoaUnlink         Scope = "user-soa-unlink"
+	ScopeSoaManageEntitlements Scope = "soa-manage-entitlements"
+	ScopeSoaManagePartner      Scope = "soa-manage-partner"
+	ScopeSoaCreatePartner      Scope = "soa-create-partner"
 )

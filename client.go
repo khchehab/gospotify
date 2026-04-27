@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -16,201 +17,85 @@ import (
 type Client struct {
 	baseURL    string
 	httpClient *http.Client
+	logger     *slog.Logger
 }
 
 // NewClient creates a new Spotify API client.
-func NewClient(ts oauth2.TokenSource) *Client {
+func NewClient(ts oauth2.TokenSource, logger *slog.Logger) *Client {
+	if logger == nil {
+		logger = slog.New(slog.NewTextHandler(io.Discard, nil))
+	}
 	return &Client{
-		baseURL:    fmt.Sprintf("%s%s", SpotifyBaseUrl, SpotifyAPIVersion),
+		baseURL:    fmt.Sprintf("%s%s", spotifyBaseUrl, spotifyAPIVersion),
 		httpClient: oauth2.NewClient(context.Background(), ts),
+		logger:     logger,
 	}
 }
 
 // get performs a GET request to the specified URL and unmarshals the response into the provided response object.
 func (c *Client) get(ctx context.Context, endpoint string, response any, opts ...QueryOption) error {
-	url := c.buildURL(endpoint, opts...)
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := c.prepareRequest(ctx, http.MethodGet, endpoint, nil, "", opts...)
 	if err != nil {
 		return err
 	}
-
-	res, err := c.httpClient.Do(req)
-	if err != nil {
-		return err
-	}
-
-	defer func(Body io.ReadCloser) {
-		if closeErr := Body.Close(); closeErr != nil {
-			fmt.Println("error closing the response body:", closeErr)
-		}
-	}(res.Body)
-
-	b, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-
-	if res.StatusCode < 200 || res.StatusCode > 299 {
-		var errResponse *ErrorResponse
-		if err = json.Unmarshal(b, &errResponse); err != nil {
-			return err
-		}
-		return errResponse
-	}
-
-	if res.StatusCode == 204 {
-		return nil
-	}
-
-	if err = json.Unmarshal(b, response); err != nil {
-		return err
-	}
-	return nil
+	return c.execute(req, response)
 }
 
 // post performs a POST request to the specified URL.
 func (c *Client) post(ctx context.Context, endpoint string, body any, response any, opts ...QueryOption) error {
-	url := c.buildURL(endpoint, opts...)
-
-	var bodyReader io.Reader = nil
-	if body != nil {
-		b, err := json.Marshal(body)
-		if err != nil {
-			return err
-		}
-		bodyReader = bytes.NewReader(b)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bodyReader)
+	req, err := c.prepareRequest(ctx, http.MethodPost, endpoint, body, "", opts...)
 	if err != nil {
 		return err
 	}
-
-	if bodyReader != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
-
-	res, err := c.httpClient.Do(req)
-	if err != nil {
-		return err
-	}
-
-	defer func(Body io.ReadCloser) {
-		if closeErr := Body.Close(); closeErr != nil {
-			fmt.Println("error closing the response body:", closeErr)
-		}
-	}(res.Body)
-
-	b, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-
-	if res.StatusCode < 200 || res.StatusCode > 299 {
-		var errResponse *ErrorResponse
-		if err = json.Unmarshal(b, &errResponse); err != nil {
-			return err
-		}
-		return errResponse
-	}
-
-	if response != nil {
-		if err = json.Unmarshal(b, response); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return c.execute(req, response)
 }
 
 // put performs a PUT request to the specified URL.
 func (c *Client) put(ctx context.Context, endpoint string, body any, contentType string, response any, opts ...QueryOption) error {
-	url := c.buildURL(endpoint, opts...)
-
-	var bodyReader io.Reader = nil
-	if body != nil {
-		var b []byte
-		var err error
-
-		if raw, ok := body.([]byte); ok {
-			b = raw
-		} else {
-			if b, err = json.Marshal(body); err != nil {
-				return err
-			}
-		}
-		bodyReader = bytes.NewReader(b)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, bodyReader)
+	req, err := c.prepareRequest(ctx, http.MethodPut, endpoint, body, contentType, opts...)
 	if err != nil {
 		return err
 	}
-
-	if bodyReader != nil {
-		if contentType != "" {
-			req.Header.Set("Content-Type", contentType)
-		} else {
-			req.Header.Set("Content-Type", "application/json")
-		}
-	}
-
-	res, err := c.httpClient.Do(req)
-	if err != nil {
-		return err
-	}
-
-	defer func(Body io.ReadCloser) {
-		if closeErr := Body.Close(); closeErr != nil {
-			fmt.Println("error closing the response body:", closeErr)
-		}
-	}(res.Body)
-
-	b, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-
-	if res.StatusCode < 200 || res.StatusCode > 299 {
-		var errResponse *ErrorResponse
-		if err = json.Unmarshal(b, &errResponse); err != nil {
-			return err
-		}
-		return errResponse
-	}
-
-	if response != nil {
-		if err = json.Unmarshal(b, response); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return c.execute(req, response)
 }
 
 // delete performs a DELETE request to the specified URL.
 func (c *Client) delete(ctx context.Context, endpoint string, body any, response any, opts ...QueryOption) error {
-	url := c.buildURL(endpoint, opts...)
-
-	var bodyReader io.Reader = nil
-	if body != nil {
-		b, err := json.Marshal(body)
-		if err != nil {
-			return err
-		}
-		bodyReader = bytes.NewReader(b)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, bodyReader)
+	req, err := c.prepareRequest(ctx, http.MethodDelete, endpoint, body, "", opts...)
 	if err != nil {
 		return err
 	}
+	return c.execute(req, response)
+}
 
-	if bodyReader != nil {
-		req.Header.Set("Content-Type", "application/json")
+// prepareRequest prepares the request object to call.
+func (c *Client) prepareRequest(ctx context.Context, method string, endpoint string, body any, contentType string, opts ...QueryOption) (*http.Request, error) {
+	if endpoint == "" {
+		return nil, fmt.Errorf("no endpoint provided")
+	}
+	url := c.buildURL(endpoint, opts...)
+
+	c.logger.Debug("preparing request object", "method", method, "url", url)
+
+	bodyReader, contentType, err := prepareBody(body, contentType)
+	if err != nil {
+		return nil, err
 	}
 
+	req, err := http.NewRequestWithContext(ctx, method, url, bodyReader)
+	if err != nil {
+		return nil, err
+	}
+
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+
+	return req, nil
+}
+
+// execute will execute a given request, read the response and return it if found.
+func (c *Client) execute(req *http.Request, response any) error {
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
@@ -218,7 +103,7 @@ func (c *Client) delete(ctx context.Context, endpoint string, body any, response
 
 	defer func(Body io.ReadCloser) {
 		if closeErr := Body.Close(); closeErr != nil {
-			fmt.Println("error closing the response body:", closeErr)
+			c.logger.Error("failed to close response body", "error", closeErr)
 		}
 	}(res.Body)
 
@@ -227,12 +112,18 @@ func (c *Client) delete(ctx context.Context, endpoint string, body any, response
 		return err
 	}
 
-	if res.StatusCode < 200 || res.StatusCode > 299 {
+	c.logger.Debug("response", "status code", res.StatusCode)
+
+	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusMultipleChoices {
 		var errResponse *ErrorResponse
 		if err = json.Unmarshal(b, &errResponse); err != nil {
 			return err
 		}
 		return errResponse
+	}
+
+	if res.StatusCode == http.StatusNoContent {
+		return nil
 	}
 
 	if response != nil {
@@ -258,4 +149,29 @@ func (c *Client) buildURL(endpoint string, opts ...QueryOption) string {
 	}
 
 	return url
+}
+
+// prepareBody prepares the request body and the content type to pass in to the request.
+func prepareBody(body any, contentType string) (io.Reader, string, error) {
+	if body == nil {
+		return nil, "", nil
+	}
+
+	var b []byte
+	var err error
+
+	switch t := body.(type) {
+	case []byte:
+		b = t
+	default:
+		if b, err = json.Marshal(body); err != nil {
+			return nil, "", err
+		}
+	}
+
+	if contentType == "" {
+		contentType = "application/json"
+	}
+
+	return bytes.NewReader(b), contentType, nil
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"log/slog"
 	"net/http"
 	"sync"
 	"time"
@@ -12,6 +14,107 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 	"golang.org/x/oauth2/spotify"
 )
+
+// Authenticator represents an authenticator object containing the OAuth2 credentials.
+type Authenticator struct {
+	clientID     string
+	clientSecret string
+	redirectURL  string
+	serverPort   int
+
+	logger *slog.Logger
+}
+
+// NewAuthenticator creates a new authenticator object.
+func NewAuthenticator(clientID, clientSecret, redirectURL string, logger *slog.Logger) *Authenticator {
+	return NewAuthenticatorWithServerPort(clientID, clientSecret, redirectURL, 8080, logger)
+}
+
+// NewAuthenticatorWithServerPort creates a new authenticator object with a specified server port.
+func NewAuthenticatorWithServerPort(clientID, clientSecret, redirectURL string, serverPort int, logger *slog.Logger) *Authenticator {
+	if logger == nil {
+		logger = slog.New(slog.NewTextHandler(io.Discard, nil))
+	}
+	return &Authenticator{
+		clientID:     clientID,
+		clientSecret: clientSecret,
+		redirectURL:  redirectURL,
+		serverPort:   serverPort,
+		logger:       logger,
+	}
+}
+
+// AuthorizationCode performs the authorization code flow and returns the initial token.
+func (a *Authenticator) AuthorizationCode(scopes []Scope) (oauth2.TokenSource, error) {
+	if err := requireNonEmpty("client id", a.clientID); err != nil {
+		return nil, err
+	}
+	if err := requireNonEmpty("client secret", a.clientSecret); err != nil {
+		return nil, err
+	}
+	if err := requireNonEmpty("redirect URL", a.redirectURL); err != nil {
+		return nil, err
+	}
+
+	oauthConfig := oauth2.Config{
+		ClientID:     a.clientID,
+		ClientSecret: a.clientSecret,
+		RedirectURL:  a.redirectURL,
+		Scopes:       scopesToString(scopes),
+		Endpoint:     spotify.Endpoint,
+	}
+
+	return a.authorizationCode(&oauthConfig, func(state string) string {
+		return oauthConfig.AuthCodeURL(state)
+	}, func(ctx context.Context, code string) (*oauth2.Token, error) {
+		return oauthConfig.Exchange(ctx, code)
+	})
+}
+
+// AuthorizationCodeWithPKCE performs the authorization code flow with PKCE and returns the initial token.
+func (a *Authenticator) AuthorizationCodeWithPKCE(scopes []Scope) (oauth2.TokenSource, error) {
+	if err := requireNonEmpty("client id", a.clientID); err != nil {
+		return nil, err
+	}
+	if err := requireNonEmpty("redirect URL", a.redirectURL); err != nil {
+		return nil, err
+	}
+
+	verifier := oauth2.GenerateVerifier()
+	challenge := oauth2.S256ChallengeOption(verifier)
+
+	oauthConfig := oauth2.Config{
+		ClientID:    a.clientID,
+		RedirectURL: a.redirectURL,
+		Scopes:      scopesToString(scopes),
+		Endpoint:    spotify.Endpoint,
+	}
+
+	return a.authorizationCode(&oauthConfig, func(state string) string {
+		return oauthConfig.AuthCodeURL(state, challenge)
+	}, func(ctx context.Context, code string) (*oauth2.Token, error) {
+		return oauthConfig.Exchange(ctx, code, oauth2.VerifierOption(verifier))
+	})
+}
+
+// ClientCredentials performs the client credentials flow and returns the initial token.
+func (a *Authenticator) ClientCredentials(scopes []Scope) (oauth2.TokenSource, error) {
+	if err := requireNonEmpty("client id", a.clientID); err != nil {
+		return nil, err
+	}
+	if err := requireNonEmpty("client secret", a.clientSecret); err != nil {
+		return nil, err
+	}
+
+	oauthConfig := clientcredentials.Config{
+		ClientID:     a.clientID,
+		ClientSecret: a.clientSecret,
+		Scopes:       scopesToString(scopes),
+		TokenURL:     spotify.Endpoint.TokenURL,
+	}
+
+	return oauthConfig.TokenSource(context.Background()), nil
+}
 
 // authResult is the result of the authorization code flow.
 type authResult struct {
@@ -25,70 +128,22 @@ type authCodeURLFunc func(state string) string
 // exchangeFunc is a function that exchanges an authorization code for an access token.
 type exchangeFunc func(ctx context.Context, code string) (*oauth2.Token, error)
 
-// AuthorizationCode performs the authorization code flow and returns the initial token.
-func AuthorizationCode(clientID, clientSecret, redirectURL string, scopes []string, serverPort int) (oauth2.TokenSource, error) {
-	oauthConfig := oauth2.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		RedirectURL:  redirectURL,
-		Scopes:       scopes,
-		Endpoint:     spotify.Endpoint,
-	}
-
-	return authorizationCode(&oauthConfig, serverPort, func(state string) string {
-		return oauthConfig.AuthCodeURL(state)
-	}, func(ctx context.Context, code string) (*oauth2.Token, error) {
-		return oauthConfig.Exchange(ctx, code)
-	})
-}
-
-// AuthorizationCodeWithPKCE performs the authorization code flow with PKCE and returns the initial token.
-func AuthorizationCodeWithPKCE(clientID, redirectURL string, scopes []string, serverPort int) (oauth2.TokenSource, error) {
-	verifier := oauth2.GenerateVerifier()
-	challenge := oauth2.S256ChallengeOption(verifier)
-
-	oauthConfig := oauth2.Config{
-		ClientID:    clientID,
-		RedirectURL: redirectURL,
-		Scopes:      scopes,
-		Endpoint:    spotify.Endpoint,
-	}
-
-	return authorizationCode(&oauthConfig, serverPort, func(state string) string {
-		return oauthConfig.AuthCodeURL(state, challenge)
-	}, func(ctx context.Context, code string) (*oauth2.Token, error) {
-		return oauthConfig.Exchange(ctx, code, oauth2.VerifierOption(verifier))
-	})
-}
-
-// ClientCredentials performs the client credentials flow and returns the initial token.
-func ClientCredentials(clientID, clientSecret string, scopes []string) oauth2.TokenSource {
-	oauthConfig := clientcredentials.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		Scopes:       scopes,
-		TokenURL:     spotify.Endpoint.TokenURL,
-	}
-
-	return oauthConfig.TokenSource(context.Background())
-}
-
 // authorizationCode performs the authorization code flow and returns the initial token.
-// This function is used internally by both AuthorizationCode and AuthorizationCodeWithPKCE.
-func authorizationCode(oauthConfig *oauth2.Config, serverPort int, authCodeURL authCodeURLFunc, exchange exchangeFunc) (oauth2.TokenSource, error) {
-	state := RandomString(16)
+// This function is used internally by both [AuthorizationCode] and [AuthorizationCodeWithPKCE].
+func (a *Authenticator) authorizationCode(oauthConfig *oauth2.Config, authCodeURL authCodeURLFunc, exchange exchangeFunc) (oauth2.TokenSource, error) {
+	state := RandomString(authStateLength)
 	authCh := make(chan authResult, 1)
 
-	server := startLocalAuthServer(serverPort, authCh, state)
-	defer shutdownServer(server)
+	server := a.startLocalAuthServer(authCh, state)
+	defer a.shutdownServer(server)
 
 	url := authCodeURL(state)
 	if err := OpenBrowser(url); err != nil {
-		fmt.Println("error opening browser: ", err) // TODO change this into a logger.Error or logger.Debug after implementing the logger
-		fmt.Println("Open this url in your browser:", url)
+		a.logger.Error("error opening browser", "error", err)
+		a.logger.Info("Open this URL in your browser", "url", url)
 	}
 
-	code, err := waitForAuthResult(authCh, 2*time.Minute)
+	code, err := waitForAuthResult(authCh, authWaitTimeout)
 	if err != nil {
 		return nil, err
 	}
@@ -134,18 +189,18 @@ func newCallbackHandler(state string, authCh chan authResult, once *sync.Once) h
 }
 
 // startLocalAuthServer starts a local HTTP server that listens for the authorization code.
-func startLocalAuthServer(serverPort int, authCh chan authResult, state string) *http.Server {
+func (a *Authenticator) startLocalAuthServer(authCh chan authResult, state string) *http.Server {
 	var once sync.Once
 
 	mux := http.NewServeMux()
 	server := &http.Server{
-		Addr:    fmt.Sprintf("127.0.0.1:%d", serverPort),
+		Addr:    fmt.Sprintf("127.0.0.1:%d", a.serverPort),
 		Handler: mux,
 	}
 	mux.HandleFunc("/callback", newCallbackHandler(state, authCh, &once))
 	go func(srv *http.Server) {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			fmt.Println("error starting server:", err)
+			a.logger.Error("error starting http server", "error", err)
 		}
 	}(server)
 
@@ -171,7 +226,7 @@ func waitForAuthResult(authCh chan authResult, timeout time.Duration) (string, e
 
 // exchangeCode exchanges the authorization code for an access token.
 func exchangeCode(oauthConfig *oauth2.Config, code string, exchange exchangeFunc) (oauth2.TokenSource, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), authCodeExchangeTimeout)
 	defer cancel()
 
 	token, err := exchange(ctx, code)
@@ -185,11 +240,20 @@ func exchangeCode(oauthConfig *oauth2.Config, code string, exchange exchangeFunc
 }
 
 // shutdownServer shuts down the local HTTP server.
-func shutdownServer(server *http.Server) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (a *Authenticator) shutdownServer(server *http.Server) {
+	ctx, cancel := context.WithTimeout(context.Background(), authServerShutdownTimeout)
 	defer cancel()
 	if err := server.Shutdown(ctx); err != nil {
-		fmt.Println("error shutting down server: ", err)
+		a.logger.Error("error shutting down server", "error", err)
 	}
 
+}
+
+// scopesToStrings converts an array of [Scope] to an array of strings.
+func scopesToString(scopes []Scope) []string {
+	result := make([]string, len(scopes))
+	for i, scope := range scopes {
+		result[i] = string(scope)
+	}
+	return result
 }

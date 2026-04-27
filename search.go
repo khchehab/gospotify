@@ -2,10 +2,7 @@ package gospotify
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"net/url"
-	"strings"
 )
 
 // SearchForItem gets Spotify catalog information about albums, artists, playlists, tracks, shows, episodes or audiobooks that match a keyword string.
@@ -17,22 +14,34 @@ import (
 //   - [WithOffset]: The index of the first item to return.
 //   - [WithIncludeExternal]: If include_external=audio is specified, it signals that the client can play externally hosted audio content and marks the content as playable in the response.
 //     By default, externally hosted audio content is marked as unplayable in the response.
-func (c *Client) SearchForItem(ctx context.Context, q string, types []string, opts ...QueryOption) (*SearchResult, error) {
-	// TODO validate the parameters: q, types, or at least types with the allowed types.
-	if q == "" {
-		return nil, errors.New("query cannot be empty")
+func (c *Client) SearchForItem(ctx context.Context, q string, types []ItemType, opts ...QueryOption) (*SearchResult, error) {
+	if err := requireNonEmpty("query", q); err != nil {
+		return nil, err
 	}
-	if len(types) == 0 {
-		return nil, errors.New("types cannot be empty")
+	if err := requireNonEmptyArray("types", types); err != nil {
+		return nil, err
 	}
+
+	// validate the types values and convert them to an array of strings
+	sTypes := make([]string, len(types))
+	for i, t := range types {
+		if !t.Valid() {
+			return nil, fmt.Errorf("invalid item type: %s", t)
+		}
+		sTypes[i] = string(t)
+	}
+
+	endpoint := appendQueryParams("/search", requiredQueryParam{
+		key:   "q",
+		value: q,
+	}, requiredQueryParam{
+		key:   "types",
+		value: sTypes,
+	})
+
 	var searchResult SearchResult
-	if err := c.get(ctx, concatenateSearch("/search", q, types), &searchResult, opts...); err != nil {
+	if err := c.get(ctx, endpoint, &searchResult, opts...); err != nil {
 		return nil, err
 	}
 	return &searchResult, nil
-}
-
-// concatenateSearch concatenates the endpoint, the query and the types into a single URL.
-func concatenateSearch(endpoint, q string, types []string) string {
-	return fmt.Sprintf("%s?q=%s&types=%s", endpoint, url.QueryEscape(q), url.QueryEscape(strings.Join(types, ",")))
 }

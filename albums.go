@@ -2,7 +2,6 @@ package gospotify
 
 import (
 	"context"
-	"errors"
 )
 
 // GetAlbum gets Spotify catalog information for a single album.
@@ -10,8 +9,8 @@ import (
 // QueryOptions that can be used are:
 // * [WithMarket]: An ISO 3166-1 alpha-2 country code.
 func (c *Client) GetAlbum(ctx context.Context, id string, opts ...QueryOption) (*AlbumObject, error) {
-	if id == "" {
-		return nil, errors.New("id cannot be empty")
+	if err := requireNonEmpty("id", id); err != nil {
+		return nil, err
 	}
 	var album AlbumObject
 	if err := c.get(ctx, "/albums/"+id, &album, opts...); err != nil {
@@ -27,8 +26,8 @@ func (c *Client) GetAlbum(ctx context.Context, id string, opts ...QueryOption) (
 // * [WithLimit]: The maximum number of items to return.
 // * [WithOffset]: The index of the first item to return.
 func (c *Client) GetAlbumTracks(ctx context.Context, id string, opts ...QueryOption) (*Page[AlbumTrack], error) {
-	if id == "" {
-		return nil, errors.New("id cannot be empty")
+	if err := requireNonEmpty("id", id); err != nil {
+		return nil, err
 	}
 	var albumTracks Page[AlbumTrack]
 	if err := c.get(ctx, "/albums/"+id+"/tracks", &albumTracks, opts...); err != nil {

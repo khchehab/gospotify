@@ -89,7 +89,7 @@ type ExternalIDs struct {
 	ISRC string `json:"isrc"`
 	// EAN is the International Article Number.
 	EAN string `json:"ean"`
-	// UP Cis the Universal Product Code.
+	// UPC is the Universal Product Code.
 	UPC string `json:"upc"`
 }
 

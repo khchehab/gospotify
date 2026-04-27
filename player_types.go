@@ -20,8 +20,7 @@ type PlaybackObject struct {
 	ProgressMs *int `json:"progress_ms"`
 	// Playing is if something is currently playing, return true.
 	Playing bool `json:"is_playing"`
-	// Item is the currently playing track or episode. Can be null. TODO update documentation
-	Track *struct {
+	Track   *struct {
 		// Album is the album on which the track appears.
 		// The album object includes a link in href to full information about the album.
 		Album struct {

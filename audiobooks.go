@@ -2,7 +2,6 @@ package gospotify
 
 import (
 	"context"
-	"errors"
 )
 
 // GetAudiobook gets Spotify catalog information for a single audiobook.
@@ -11,8 +10,8 @@ import (
 // QueryOptions that can be used are:
 // * [WithMarket]: An ISO 3166-1 alpha-2 country code.
 func (c *Client) GetAudiobook(ctx context.Context, id string, opts ...QueryOption) (*AudiobookObject, error) {
-	if id == "" {
-		return nil, errors.New("id cannot be empty")
+	if err := requireNonEmpty("id", id); err != nil {
+		return nil, err
 	}
 	var audiobook AudiobookObject
 	if err := c.get(ctx, "/audiobooks/"+id, &audiobook, opts...); err != nil {
@@ -29,8 +28,8 @@ func (c *Client) GetAudiobook(ctx context.Context, id string, opts ...QueryOptio
 // * [WithLimit]: The maximum number of items to return.
 // * [WithOffset]: The index of the first item to return.
 func (c *Client) GetAudiobookChapters(ctx context.Context, id string, opts ...QueryOption) (*Page[AudiobookChapter], error) {
-	if id == "" {
-		return nil, errors.New("id cannot be empty")
+	if err := requireNonEmpty("id", id); err != nil {
+		return nil, err
 	}
 	var audiobookChapters Page[AudiobookChapter]
 	if err := c.get(ctx, "/audiobooks/"+id+"/chapters", &audiobookChapters, opts...); err != nil {
