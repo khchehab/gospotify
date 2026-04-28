@@ -4,21 +4,6 @@ import (
 	"time"
 )
 
-// Scope represents a scope data type.
-type Scope string
-
-// RepeatState represents a repeat state data type.
-type RepeatState string
-
-// ItemType represents an item type data type.
-type ItemType string
-
-// Valid checks if the item type is valid based on a pre-defined allowed values.
-func (t ItemType) Valid() bool {
-	_, ok := itemTypeMap[t]
-	return ok
-}
-
 const (
 	spotifyBaseUrl    = "https://api.spotify.com"
 	spotifyAPIVersion = "/v1"
@@ -27,6 +12,15 @@ const (
 	authWaitTimeout           = 2 * time.Minute
 	authCodeExchangeTimeout   = 10 * time.Second
 	authServerShutdownTimeout = 5 * time.Second
+)
+
+const (
+	// ShortTerm is approximately last 4 weeks.
+	ShortTerm TimeRange = "short_term"
+	// MediumTerm is approximately last 6 months.
+	MediumTerm TimeRange = "medium_term"
+	// LongTerm is calculated from ~1 year of data and including all new data as it becomes available.
+	LongTerm TimeRange = "long_term"
 )
 
 const (

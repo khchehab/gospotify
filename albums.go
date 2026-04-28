@@ -25,11 +25,11 @@ func (c *Client) GetAlbum(ctx context.Context, id string, opts ...QueryOption) (
 // * [WithMarket]: An ISO 3166-1 alpha-2 country code.
 // * [WithLimit]: The maximum number of items to return.
 // * [WithOffset]: The index of the first item to return.
-func (c *Client) GetAlbumTracks(ctx context.Context, id string, opts ...QueryOption) (*Page[AlbumTrack], error) {
+func (c *Client) GetAlbumTracks(ctx context.Context, id string, opts ...QueryOption) (*Page[SimplifiedTrackObject], error) {
 	if err := requireNonEmpty("id", id); err != nil {
 		return nil, err
 	}
-	var albumTracks Page[AlbumTrack]
+	var albumTracks Page[SimplifiedTrackObject]
 	if err := c.get(ctx, "/albums/"+id+"/tracks", &albumTracks, opts...); err != nil {
 		return nil, err
 	}

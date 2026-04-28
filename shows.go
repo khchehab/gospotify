@@ -25,11 +25,11 @@ func (c *Client) GetShow(ctx context.Context, id string, opts ...QueryOption) (*
 // * [WithMarket]: An ISO 3166-1 alpha-2 country code.
 // * [WithLimit]: The maximum number of items to return.
 // * [WithOffset]: The index of the first item to return.
-func (c *Client) GetShowEpisodes(ctx context.Context, id string, opts ...QueryOption) (*Page[ShowEpisode], error) {
+func (c *Client) GetShowEpisodes(ctx context.Context, id string, opts ...QueryOption) (*Page[SimplifiedEpisodeObject], error) {
 	if err := requireNonEmpty("id", id); err != nil {
 		return nil, err
 	}
-	var showEpisodes Page[ShowEpisode]
+	var showEpisodes Page[SimplifiedEpisodeObject]
 	if err := c.get(ctx, "/shows/"+id+"/episodes", &showEpisodes, opts...); err != nil {
 		return nil, err
 	}

@@ -1,16 +1,22 @@
 package gospotify
 
+// Scope represents a scope data type.
+type Scope string
+
 // TimeRange is the time frame the affinities are computed.
 type TimeRange string
 
-const (
-	// ShortTerm is approximately last 4 weeks.
-	ShortTerm TimeRange = "short_term"
-	// MediumTerm is approximately last 6 months.
-	MediumTerm TimeRange = "medium_term"
-	// LongTerm is calculated from ~1 year of data and including all new data as it becomes available.
-	LongTerm TimeRange = "long_term"
-)
+// RepeatState represents a repeat state data type.
+type RepeatState string
+
+// ItemType represents an item type data type.
+type ItemType string
+
+// Valid checks if the item type is valid based on a pre-defined allowed values.
+func (t ItemType) Valid() bool {
+	_, ok := itemTypeMap[t]
+	return ok
+}
 
 type Page[T any] struct {
 	// Href is a link to the Web API endpoint returning the full result of the request.
@@ -58,7 +64,7 @@ type ExplicitContent struct {
 	FilterLocked bool `json:"filter_locked"`
 }
 
-type ExternalURLs struct {
+type ExternalURLsObject struct {
 	// Spotify is the Spotify URL for the object.
 	Spotify string `json:"spotify"`
 }
@@ -79,12 +85,12 @@ type ImageObject struct {
 	Width *int `json:"width"`
 }
 
-type Restrictions struct {
+type RestrictionsObject struct {
 	// Reason is the reason for the restriction. Supported values: "market", "product", or "explicit".
 	Reason string `json:"reason"`
 }
 
-type ExternalIDs struct {
+type ExternalIDsObject struct {
 	// ISRC is the International Standard Recording Code.
 	ISRC string `json:"isrc"`
 	// EAN is the International Article Number.
@@ -116,7 +122,14 @@ type ContextObject struct {
 	// Href is a link to the Web API endpoint providing full details of the track.
 	Href string `json:"href"`
 	// ExternalURLs for this context.
-	ExternalURLs ExternalURLs `json:"external_urls"`
+	ExternalURLs ExternalURLsObject `json:"external_urls"`
 	// URI is the Spotify URI for the context.
 	URI string `json:"uri"`
+}
+
+type ResumePointObject struct {
+	// FullyPlayed is whether the episode has been fully played by the user.
+	FullyPlayed bool `json:"fully_played"`
+	// ResumePositionMs is the user's most recent position in the episode in milliseconds.
+	ResumePositionMs int `json:"resume_position_ms"`
 }

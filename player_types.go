@@ -5,6 +5,29 @@ import (
 	"fmt"
 )
 
+type ActionsObject struct {
+	// InterruptingPlayback is for interrupting playback. Optional field.
+	InterruptingPlayback bool `json:"interrupting_playback,omitempty"`
+	// Pausing is for pausing. Optional field.
+	Pausing bool `json:"pausing,omitempty"`
+	// Resuming is for resuming. Optional field.
+	Resuming bool `json:"resuming,omitempty"`
+	// Seeking is for seeking playback location. Optional field.
+	Seeking bool `json:"seeking,omitempty"`
+	// SkippingNext is for skipping to the next context. Optional field.
+	SkippingNext bool `json:"skipping_next,omitempty"`
+	// SkippingPrevious is for skipping to the previous context. Optional field.
+	SkippingPrevious bool `json:"skipping_prev,omitempty"`
+	// TogglingRepeatContext is for toggling the repeat context flag. Optional field.
+	TogglingRepeatContext bool `json:"toggling_repeat_context,omitempty"`
+	// TogglingShuffle is for toggling shuffle flag. Optional field.
+	TogglingShuffle bool `json:"toggling_shuffle,omitempty"`
+	// TogglingRepeatTrack is for toggling the repeat track flag. Optional field.
+	TogglingRepeatTrack bool `json:"toggling_repeat_track,omitempty"`
+	// TransferringPlayback is for transferring playback between devices. Optional field.
+	TransferringPlayback bool `json:"transferring_playback,omitempty"`
+}
+
 type PlaybackObject struct {
 	// Device is the device that is currently active.
 	Device DeviceObject `json:"device"`
@@ -20,216 +43,13 @@ type PlaybackObject struct {
 	ProgressMs *int `json:"progress_ms"`
 	// Playing is if something is currently playing, return true.
 	Playing bool `json:"is_playing"`
-	Track   *struct {
-		// Album is the album on which the track appears.
-		// The album object includes a link in href to full information about the album.
-		Album struct {
-			// AlbumType is the type of the album. Allowed values are "album", "single", or "compilation".
-			AlbumType string `json:"album_type"`
-			// TotalTracks is the number of tracks in the album.
-			TotalTracks int `json:"total_tracks"`
-			// Deprecated: AvailableMarkets is the markets in which the album is available: ISO 3166-1 alpha-2 country codes.
-			AvailableMarkets []string `json:"available_markets"`
-			// ExternalURLs is the known external URLs for this album.
-			ExternalURLs ExternalURLs `json:"external_urls"`
-			// Href is a link to the Web API endpoint providing full details of the album.
-			Href string `json:"href"`
-			// ID is the Spotify ID for the album.
-			ID string `json:"id"`
-			// Images is the cover art for the album in various sizes, widest first.
-			Images []ImageObject `json:"images"`
-			// Name is the name of the album. In the case of an album takedown, the value may be an empty string.
-			Name string `json:"name"`
-			// ReleaseDate is the date the album was first released.
-			ReleaseDate string `json:"release_date"`
-			// ReleaseDatePrecision is the precision with which ReleaseDate value is known. Allowed values are "year", "month", or "day".
-			ReleaseDatePrecision string `json:"release_date_precision"`
-			// Restrictions are Included in the response when a content restriction is applied.
-			Restrictions *Restrictions `json:"restrictions"`
-			// Type is the object type. Allowed values is "album".
-			Type string `json:"type"`
-			// URI is the Spotify URI for the album.
-			URI string `json:"uri"`
-			// Artists are the artists of the album. Each artist object includes a link in href to more detailed information about the artist.
-			Artists []struct { // called SimplifiedArtistObject
-				// ExternalURLs is the known external URLs for this artist.
-				ExternalURLs ExternalURLs `json:"external_urls"`
-				// Href is a link to the Web API endpoint providing full details of the artist.
-				Href string `json:"href"`
-				// ID is the Spotify ID for the artist.
-				ID string `json:"id"`
-				// Name is the name of the artist.
-				Name string `json:"name"`
-				// Type is the object type.
-				Type string `json:"type"`
-				// URI is the Spotify URI for the artist.
-				URI string `json:"uri"`
-			} `json:"artists"`
-		} `json:"album"`
-		// Artists is the artists who performed the track.
-		// Each artist object includes a link in href to more detailed information about the artist.
-		Artists []struct {
-			// ExternalURLs is the known external URLs for this artist.
-			ExternalURLs ExternalURLs `json:"external_urls"`
-			// Href is a link to the Web API endpoint providing full details of the artist.
-			Href string `json:"href"`
-			// ID is the Spotify ID for the artist.
-			ID string `json:"id"`
-			// Name is the name of the artist.
-			Name string `json:"name"`
-			// Type is the object type.
-			Type string `json:"type"`
-			// URI is the Spotify URI for the artist.
-			URI string `json:"uri"`
-		} `json:"artists"`
-		// Deprecated: AvailableMarkets is a list of the countries in which the track can be played.
-		AvailableMarkets []string `json:"available_markets"`
-		// DiscNumber is the disc number (usually 1 unless the album consists of more than one disc).
-		DiscNumber int `json:"disc_number"`
-		// DurationMs is the track length in milliseconds.
-		DurationMs int `json:"duration_ms"`
-		// Explicit is whether the track has explicit lyrics.
-		Explicit bool `json:"explicit"`
-		// ExternalIDs is the known external IDs for the track.
-		ExternalIDs ExternalIDs `json:"external_ids"`
-		// ExternalURLs is the known external URLs for this track.
-		ExternalURLs ExternalURLs `json:"external_urls"`
-		// Href is a link to the Web API endpoint providing full details of the track.
-		Href string `json:"href"`
-		// ID is the Spotify ID for the track.
-		ID string `json:"id"`
-		// Playable is true if the track is playable in the given market, otherwise false.
-		Playable bool `json:"is_playable"`
-		// Deprecated: LinkedFrom is part of the response when Track Relinking is applied, and the requested track has been replaced with different track.
-		LinkedFrom map[string]any `json:"linked_from"`
-		// Restrictions are included in the response when a content restriction is applied.
-		Restrictions *Restrictions `json:"restrictions"`
-		// Name is the name of the track.
-		Name string `json:"name"`
-		// Deprecated: Popularity is the popularity of the track. The value will be between 0 and 100, with 100 being the most popular.
-		Popularity int `json:"popularity"`
-		// Deprecated: PreviewURL is a link to a 30-second preview (MP3 format) of the track. Can be null
-		PreviewURL *string `json:"preview_url"`
-		// TrackNumber is the number of the track. If an album has several discs, the track number is the number on the specified disc.
-		TrackNumber int `json:"track_number"`
-		// Type is the object type: "track".
-		Type string `json:"type"`
-		// URI is the Spotify URI for the track.
-		URI string `json:"uri"`
-		// Local is whether the track is from a local file.
-		Local bool `json:"is_local"`
-	}
-	Episode *struct {
-		// Deprecated: AudioPreviewURL is a URL to a 30-second preview (MP3 format) of the episode. null if not available.
-		AudioPreviewURL *string `json:"audio_preview_url"`
-		// Description is a description of the episode. HTML tags are stripped away from this field, use html_description field in case HTML tags are needed.
-		Description string `json:"description"`
-		// HTMLDescription is a description of the episode. This field may contain HTML tags.
-		HTMLDescription string `json:"html_description"`
-		// DurationMs is the episode length in milliseconds.
-		DurationMs int `json:"duration_ms"`
-		// Explicit is whether the episode has explicit content.
-		Explicit bool `json:"explicit"`
-		// ExternalURLs is the external URLs for this episode.
-		ExternalURLs ExternalURLs `json:"external_urls"`
-		// Href is a link to the Web API endpoint providing full details of the episode.
-		Href string `json:"href"`
-		// ID is the Spotify ID for the episode.
-		ID string `json:"id"`
-		// Images is the cover art for the episode in various sizes, widest first.
-		Images []ImageObject `json:"images"`
-		// ExternallyHosted is true if the episode is hosted outside Spotify's CDN.
-		ExternallyHosted bool `json:"is_externally_hosted"`
-		// Playable is True if the episode is playable in the given market, otherwise false.
-		Playable bool `json:"is_playable"`
-		// Deprecated: Language is the language used in the episode, identified by an ISO 639 code.
-		Language *string `json:"language"`
-		// Languages is a list of the languages used in the episode, identified by their ISO 639-1 code.
-		Languages []string `json:"languages"`
-		// Name is the name of the episode.
-		Name string `json:"name"`
-		// ReleaseDate is the date the episode was first released.
-		ReleaseDate string `json:"release_date"`
-		// ReleaseDatePrecision is the precision with which release_date value is known. Allowed values are "year", "month", or "day".
-		ReleaseDatePrecision string `json:"release_date_precision"`
-		// ResumePoint is the user's most recent position in the episode.
-		// Set if the supplied access token is a user token and has the scope 'user-read-playback-position'.
-		ResumePoint struct {
-			// FullyPlayed is whether the episode has been fully played by the user.
-			FullyPlayed bool `json:"fully_played"`
-			// ResumePositionMs is the user's most recent position in the episode in milliseconds.
-			ResumePositionMs int `json:"resume_position_ms"`
-		} `json:"resume_point"`
-		// Type is the object type. Allowed values: "episode".
-		Type string `json:"type"`
-		// URI is the Spotify URI for the episode.
-		URI string `json:"uri"`
-		// Restrictions is included in the response when a content restriction is applied.
-		Restrictions *Restrictions `json:"restrictions"`
-		// Show is the show on which the episode belongs.
-		Show struct {
-			// Deprecated: AvailableMarkets is a list of the countries in which the show can be played, identified by their ISO 3166-1 alpha-2 code.
-			AvailableMarkets []string `json:"available_markets"`
-			// Copyrights is the copyright statements of the show.
-			Copyrights []CopyrightObject `json:"copyrights"`
-			// Description is a description of the show. HTML tags are stripped away from this field, use HTMLDescription field in case HTML tags are needed.
-			Description string `json:"description"`
-			// HTMLDescription is a description of the show. This field may contain HTML tags.
-			HTMLDescription string `json:"html_description"`
-			// Explicit is whether the show has explicit content.
-			Explicit bool `json:"explicit"`
-			// ExternalURLs is the external URLs for this show.
-			ExternalURLs ExternalURLs `json:"external_urls"`
-			// Href is a link to the Web API endpoint providing full details of the show.
-			Href string `json:"href"`
-			// ID is the Spotify ID for the show.
-			ID string `json:"id"`
-			// Images is the cover art for the show in various sizes, widest first.
-			Images []ImageObject `json:"images"`
-			// ExternallyHosted is true if all shows episodes are hosted outside Spotify's CDN.
-			ExternallyHosted *bool `json:"is_externally_hosted"`
-			// Languages is a list of the languages used in the show, identified by their ISO 639 code.
-			Languages []string `json:"languages"`
-			// MediaType is the media type of the show.
-			MediaType string `json:"media_type"`
-			// Name is the name of the show.
-			Name string `json:"name"`
-			// Deprecated: Publisher is the publisher of the show.
-			Publisher *string `json:"publisher"`
-			// Type is the object type. Allowed values is "show".
-			Type string `json:"type"`
-			// URI is the Spotify URI for the show.
-			URI string `json:"uri"`
-			// TotalEpisodes is the number of episodes in this show.
-			TotalEpisodes int `json:"total_episodes"`
-		} `json:"show"`
-	}
+	Track   *TrackObject
+	Episode *EpisodeObject
 	// CurrentlyPlayingType is the object type of the currently playing item.
 	// Can be one of "track", "episode", "ad" or "unknown".
 	CurrentlyPlayingType string `json:"currently_playing_type"`
 	// Actions is the list of actions allowed to update the user interface based on which playback actions are available within the current context.
-	Actions struct {
-		// InterruptingPlayback is for interrupting playback. Optional field.
-		InterruptingPlayback bool `json:"interrupting_playback,omitempty"`
-		// Pausing is for pausing. Optional field.
-		Pausing bool `json:"pausing,omitempty"`
-		// Resuming is for resuming. Optional field.
-		Resuming bool `json:"resuming,omitempty"`
-		// Seeking is for seeking playback location. Optional field.
-		Seeking bool `json:"seeking,omitempty"`
-		// SkippingNext is for skipping to the next context. Optional field.
-		SkippingNext bool `json:"skipping_next,omitempty"`
-		// SkippingPrevious is for skipping to the previous context. Optional field.
-		SkippingPrevious bool `json:"skipping_prev,omitempty"`
-		// TogglingRepeatContext is for toggling the repeat context flag. Optional field.
-		TogglingRepeatContext bool `json:"toggling_repeat_context,omitempty"`
-		// TogglingShuffle is for toggling shuffle flag. Optional field.
-		TogglingShuffle bool `json:"toggling_shuffle,omitempty"`
-		// TogglingRepeatTrack is for toggling the repeat track flag. Optional field.
-		TogglingRepeatTrack bool `json:"toggling_repeat_track,omitempty"`
-		// TransferringPlayback is for transferring playback between devices. Optional field.
-		TransferringPlayback bool `json:"transferring_playback,omitempty"`
-	} `json:"actions"`
+	Actions ActionsObject `json:"actions"`
 }
 
 func (p *PlaybackObject) UnmarshalJSON(data []byte) error {
@@ -254,28 +74,7 @@ func (p *PlaybackObject) UnmarshalJSON(data []byte) error {
 		// Can be one of "track", "episode", "ad" or "unknown".
 		CurrentlyPlayingType string `json:"currently_playing_type"`
 		// Actions is the list of actions allowed to update the user interface based on which playback actions are available within the current context.
-		Actions struct {
-			// InterruptingPlayback is for interrupting playback. Optional field.
-			InterruptingPlayback bool `json:"interrupting_playback,omitempty"`
-			// Pausing is for pausing. Optional field.
-			Pausing bool `json:"pausing,omitempty"`
-			// Resuming is for resuming. Optional field.
-			Resuming bool `json:"resuming,omitempty"`
-			// Seeking is for seeking playback location. Optional field.
-			Seeking bool `json:"seeking,omitempty"`
-			// SkippingNext is for skipping to the next context. Optional field.
-			SkippingNext bool `json:"skipping_next,omitempty"`
-			// SkippingPrevious is for skipping to the previous context. Optional field.
-			SkippingPrevious bool `json:"skipping_prev,omitempty"`
-			// TogglingRepeatContext is for toggling the repeat context flag. Optional field.
-			TogglingRepeatContext bool `json:"toggling_repeat_context,omitempty"`
-			// TogglingShuffle is for toggling shuffle flag. Optional field.
-			TogglingShuffle bool `json:"toggling_shuffle,omitempty"`
-			// TogglingRepeatTrack is for toggling the repeat track flag. Optional field.
-			TogglingRepeatTrack bool `json:"toggling_repeat_track,omitempty"`
-			// TransferringPlayback is for transferring playback between devices. Optional field.
-			TransferringPlayback bool `json:"transferring_playback,omitempty"`
-		} `json:"actions"`
+		Actions ActionsObject `json:"actions"`
 	}
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
@@ -304,195 +103,13 @@ func (p *PlaybackObject) UnmarshalJSON(data []byte) error {
 
 	switch peek.Type {
 	case "track":
-		var t struct {
-			// Album is the album on which the track appears.
-			// The album object includes a link in href to full information about the album.
-			Album struct {
-				// AlbumType is the type of the album. Allowed values are "album", "single", or "compilation".
-				AlbumType string `json:"album_type"`
-				// TotalTracks is the number of tracks in the album.
-				TotalTracks int `json:"total_tracks"`
-				// Deprecated: AvailableMarkets is the markets in which the album is available: ISO 3166-1 alpha-2 country codes.
-				AvailableMarkets []string `json:"available_markets"`
-				// ExternalURLs is the known external URLs for this album.
-				ExternalURLs ExternalURLs `json:"external_urls"`
-				// Href is a link to the Web API endpoint providing full details of the album.
-				Href string `json:"href"`
-				// ID is the Spotify ID for the album.
-				ID string `json:"id"`
-				// Images is the cover art for the album in various sizes, widest first.
-				Images []ImageObject `json:"images"`
-				// Name is the name of the album. In the case of an album takedown, the value may be an empty string.
-				Name string `json:"name"`
-				// ReleaseDate is the date the album was first released.
-				ReleaseDate string `json:"release_date"`
-				// ReleaseDatePrecision is the precision with which ReleaseDate value is known. Allowed values are "year", "month", or "day".
-				ReleaseDatePrecision string `json:"release_date_precision"`
-				// Restrictions are Included in the response when a content restriction is applied.
-				Restrictions *Restrictions `json:"restrictions"`
-				// Type is the object type. Allowed values is "album".
-				Type string `json:"type"`
-				// URI is the Spotify URI for the album.
-				URI string `json:"uri"`
-				// Artists are the artists of the album. Each artist object includes a link in href to more detailed information about the artist.
-				Artists []struct { // called SimplifiedArtistObject
-					// ExternalURLs is the known external URLs for this artist.
-					ExternalURLs ExternalURLs `json:"external_urls"`
-					// Href is a link to the Web API endpoint providing full details of the artist.
-					Href string `json:"href"`
-					// ID is the Spotify ID for the artist.
-					ID string `json:"id"`
-					// Name is the name of the artist.
-					Name string `json:"name"`
-					// Type is the object type.
-					Type string `json:"type"`
-					// URI is the Spotify URI for the artist.
-					URI string `json:"uri"`
-				} `json:"artists"`
-			} `json:"album"`
-			// Artists is the artists who performed the track.
-			// Each artist object includes a link in href to more detailed information about the artist.
-			Artists []struct {
-				// ExternalURLs is the known external URLs for this artist.
-				ExternalURLs ExternalURLs `json:"external_urls"`
-				// Href is a link to the Web API endpoint providing full details of the artist.
-				Href string `json:"href"`
-				// ID is the Spotify ID for the artist.
-				ID string `json:"id"`
-				// Name is the name of the artist.
-				Name string `json:"name"`
-				// Type is the object type.
-				Type string `json:"type"`
-				// URI is the Spotify URI for the artist.
-				URI string `json:"uri"`
-			} `json:"artists"`
-			// Deprecated: AvailableMarkets is a list of the countries in which the track can be played.
-			AvailableMarkets []string `json:"available_markets"`
-			// DiscNumber is the disc number (usually 1 unless the album consists of more than one disc).
-			DiscNumber int `json:"disc_number"`
-			// DurationMs is the track length in milliseconds.
-			DurationMs int `json:"duration_ms"`
-			// Explicit is whether the track has explicit lyrics.
-			Explicit bool `json:"explicit"`
-			// ExternalIDs is the known external IDs for the track.
-			ExternalIDs ExternalIDs `json:"external_ids"`
-			// ExternalURLs is the known external URLs for this track.
-			ExternalURLs ExternalURLs `json:"external_urls"`
-			// Href is a link to the Web API endpoint providing full details of the track.
-			Href string `json:"href"`
-			// ID is the Spotify ID for the track.
-			ID string `json:"id"`
-			// Playable is true if the track is playable in the given market, otherwise false.
-			Playable bool `json:"is_playable"`
-			// Deprecated: LinkedFrom is part of the response when Track Relinking is applied, and the requested track has been replaced with different track.
-			LinkedFrom map[string]any `json:"linked_from"`
-			// Restrictions are included in the response when a content restriction is applied.
-			Restrictions *Restrictions `json:"restrictions"`
-			// Name is the name of the track.
-			Name string `json:"name"`
-			// Deprecated: Popularity is the popularity of the track. The value will be between 0 and 100, with 100 being the most popular.
-			Popularity int `json:"popularity"`
-			// Deprecated: PreviewURL is a link to a 30-second preview (MP3 format) of the track. Can be null
-			PreviewURL *string `json:"preview_url"`
-			// TrackNumber is the number of the track. If an album has several discs, the track number is the number on the specified disc.
-			TrackNumber int `json:"track_number"`
-			// Type is the object type: "track".
-			Type string `json:"type"`
-			// URI is the Spotify URI for the track.
-			URI string `json:"uri"`
-			// Local is whether the track is from a local file.
-			Local bool `json:"is_local"`
-		}
+		var t TrackObject
 		if err := json.Unmarshal(raw.Item, &t); err != nil {
 			return fmt.Errorf("failed to unmarshal track: %w", err)
 		}
 		p.Track = &t
 	case "episode":
-		var e struct {
-			// Deprecated: AudioPreviewURL is a URL to a 30-second preview (MP3 format) of the episode. null if not available.
-			AudioPreviewURL *string `json:"audio_preview_url"`
-			// Description is a description of the episode. HTML tags are stripped away from this field, use html_description field in case HTML tags are needed.
-			Description string `json:"description"`
-			// HTMLDescription is a description of the episode. This field may contain HTML tags.
-			HTMLDescription string `json:"html_description"`
-			// DurationMs is the episode length in milliseconds.
-			DurationMs int `json:"duration_ms"`
-			// Explicit is whether the episode has explicit content.
-			Explicit bool `json:"explicit"`
-			// ExternalURLs is the external URLs for this episode.
-			ExternalURLs ExternalURLs `json:"external_urls"`
-			// Href is a link to the Web API endpoint providing full details of the episode.
-			Href string `json:"href"`
-			// ID is the Spotify ID for the episode.
-			ID string `json:"id"`
-			// Images is the cover art for the episode in various sizes, widest first.
-			Images []ImageObject `json:"images"`
-			// ExternallyHosted is true if the episode is hosted outside Spotify's CDN.
-			ExternallyHosted bool `json:"is_externally_hosted"`
-			// Playable is True if the episode is playable in the given market, otherwise false.
-			Playable bool `json:"is_playable"`
-			// Deprecated: Language is the language used in the episode, identified by an ISO 639 code.
-			Language *string `json:"language"`
-			// Languages is a list of the languages used in the episode, identified by their ISO 639-1 code.
-			Languages []string `json:"languages"`
-			// Name is the name of the episode.
-			Name string `json:"name"`
-			// ReleaseDate is the date the episode was first released.
-			ReleaseDate string `json:"release_date"`
-			// ReleaseDatePrecision is the precision with which release_date value is known. Allowed values are "year", "month", or "day".
-			ReleaseDatePrecision string `json:"release_date_precision"`
-			// ResumePoint is the user's most recent position in the episode.
-			// Set if the supplied access token is a user token and has the scope 'user-read-playback-position'.
-			ResumePoint struct {
-				// FullyPlayed is whether the episode has been fully played by the user.
-				FullyPlayed bool `json:"fully_played"`
-				// ResumePositionMs is the user's most recent position in the episode in milliseconds.
-				ResumePositionMs int `json:"resume_position_ms"`
-			} `json:"resume_point"`
-			// Type is the object type. Allowed values: "episode".
-			Type string `json:"type"`
-			// URI is the Spotify URI for the episode.
-			URI string `json:"uri"`
-			// Restrictions is included in the response when a content restriction is applied.
-			Restrictions *Restrictions `json:"restrictions"`
-			// Show is the show on which the episode belongs.
-			Show struct {
-				// Deprecated: AvailableMarkets is a list of the countries in which the show can be played, identified by their ISO 3166-1 alpha-2 code.
-				AvailableMarkets []string `json:"available_markets"`
-				// Copyrights is the copyright statements of the show.
-				Copyrights []CopyrightObject `json:"copyrights"`
-				// Description is a description of the show. HTML tags are stripped away from this field, use HTMLDescription field in case HTML tags are needed.
-				Description string `json:"description"`
-				// HTMLDescription is a description of the show. This field may contain HTML tags.
-				HTMLDescription string `json:"html_description"`
-				// Explicit is whether the show has explicit content.
-				Explicit bool `json:"explicit"`
-				// ExternalURLs is the external URLs for this show.
-				ExternalURLs ExternalURLs `json:"external_urls"`
-				// Href is a link to the Web API endpoint providing full details of the show.
-				Href string `json:"href"`
-				// ID is the Spotify ID for the show.
-				ID string `json:"id"`
-				// Images is the cover art for the show in various sizes, widest first.
-				Images []ImageObject `json:"images"`
-				// ExternallyHosted is true if all shows episodes are hosted outside Spotify's CDN.
-				ExternallyHosted *bool `json:"is_externally_hosted"`
-				// Languages is a list of the languages used in the show, identified by their ISO 639 code.
-				Languages []string `json:"languages"`
-				// MediaType is the media type of the show.
-				MediaType string `json:"media_type"`
-				// Name is the name of the show.
-				Name string `json:"name"`
-				// Deprecated: Publisher is the publisher of the show.
-				Publisher *string `json:"publisher"`
-				// Type is the object type. Allowed values is "show".
-				Type string `json:"type"`
-				// URI is the Spotify URI for the show.
-				URI string `json:"uri"`
-				// TotalEpisodes is the number of episodes in this show.
-				TotalEpisodes int `json:"total_episodes"`
-			} `json:"show"`
-		}
+		var e EpisodeObject
 		if err := json.Unmarshal(raw.Item, &e); err != nil {
 			return fmt.Errorf("failed to unmarshal episode: %w", err)
 		}
@@ -525,194 +142,12 @@ type DeviceObject struct {
 	SupportsVolume bool `json:"supports_volume"`
 }
 
-type QueueItem struct {
-	Track *struct {
-		// Album is the album on which the track appears.
-		// The album object includes a link in href to full information about the album.
-		Album struct {
-			// AlbumType is the type of the album. Allowed values are "album", "single", or "compilation".
-			AlbumType string `json:"album_type"`
-			// TotalTracks is the number of tracks in the album.
-			TotalTracks int `json:"total_tracks"`
-			// Deprecated: AvailableMarkets is the markets in which the album is available: ISO 3166-1 alpha-2 country codes.
-			AvailableMarkets []string `json:"available_markets"`
-			// ExternalURLs is the known external URLs for this album.
-			ExternalURLs ExternalURLs `json:"external_urls"`
-			// Href is a link to the Web API endpoint providing full details of the album.
-			Href string `json:"href"`
-			// ID is the Spotify ID for the album.
-			ID string `json:"id"`
-			// Images is the cover art for the album in various sizes, widest first.
-			Images []ImageObject `json:"images"`
-			// Name is the name of the album. In the case of an album takedown, the value may be an empty string.
-			Name string `json:"name"`
-			// ReleaseDate is the date the album was first released.
-			ReleaseDate string `json:"release_date"`
-			// ReleaseDatePrecision is the precision with which ReleaseDate value is known. Allowed values are "year", "month", or "day".
-			ReleaseDatePrecision string `json:"release_date_precision"`
-			// Restrictions are Included in the response when a content restriction is applied.
-			Restrictions *Restrictions `json:"restrictions"`
-			// Type is the object type. Allowed values is "album".
-			Type string `json:"type"`
-			// URI is the Spotify URI for the album.
-			URI string `json:"uri"`
-			// Artists are the artists of the album. Each artist object includes a link in href to more detailed information about the artist.
-			Artists []struct { // called SimplifiedArtistObject
-				// ExternalURLs is the known external URLs for this artist.
-				ExternalURLs ExternalURLs `json:"external_urls"`
-				// Href is a link to the Web API endpoint providing full details of the artist.
-				Href string `json:"href"`
-				// ID is the Spotify ID for the artist.
-				ID string `json:"id"`
-				// Name is the name of the artist.
-				Name string `json:"name"`
-				// Type is the object type.
-				Type string `json:"type"`
-				// URI is the Spotify URI for the artist.
-				URI string `json:"uri"`
-			} `json:"artists"`
-		} `json:"album"`
-		// Artists is the artists who performed the track.
-		// Each artist object includes a link in href to more detailed information about the artist.
-		Artists []struct {
-			// ExternalURLs is the known external URLs for this artist.
-			ExternalURLs ExternalURLs `json:"external_urls"`
-			// Href is a link to the Web API endpoint providing full details of the artist.
-			Href string `json:"href"`
-			// ID is the Spotify ID for the artist.
-			ID string `json:"id"`
-			// Name is the name of the artist.
-			Name string `json:"name"`
-			// Type is the object type.
-			Type string `json:"type"`
-			// URI is the Spotify URI for the artist.
-			URI string `json:"uri"`
-		} `json:"artists"`
-		// Deprecated: AvailableMarkets is a list of the countries in which the track can be played.
-		AvailableMarkets []string `json:"available_markets"`
-		// DiscNumber is the disc number (usually 1 unless the album consists of more than one disc).
-		DiscNumber int `json:"disc_number"`
-		// DurationMs is the track length in milliseconds.
-		DurationMs int `json:"duration_ms"`
-		// Explicit is whether the track has explicit lyrics.
-		Explicit bool `json:"explicit"`
-		// ExternalIDs is the known external IDs for the track.
-		ExternalIDs ExternalIDs `json:"external_ids"`
-		// ExternalURLs is the known external URLs for this track.
-		ExternalURLs ExternalURLs `json:"external_urls"`
-		// Href is a link to the Web API endpoint providing full details of the track.
-		Href string `json:"href"`
-		// ID is the Spotify ID for the track.
-		ID string `json:"id"`
-		// Playable is true if the track is playable in the given market, otherwise false.
-		Playable bool `json:"is_playable"`
-		// Deprecated: LinkedFrom is part of the response when Track Relinking is applied, and the requested track has been replaced with different track.
-		LinkedFrom map[string]any `json:"linked_from"`
-		// Restrictions are included in the response when a content restriction is applied.
-		Restrictions *Restrictions `json:"restrictions"`
-		// Name is the name of the track.
-		Name string `json:"name"`
-		// Deprecated: Popularity is the popularity of the track. The value will be between 0 and 100, with 100 being the most popular.
-		Popularity int `json:"popularity"`
-		// Deprecated: PreviewURL is a link to a 30-second preview (MP3 format) of the track. Can be null
-		PreviewURL *string `json:"preview_url"`
-		// TrackNumber is the number of the track. If an album has several discs, the track number is the number on the specified disc.
-		TrackNumber int `json:"track_number"`
-		// Type is the object type: "track".
-		Type string `json:"type"`
-		// URI is the Spotify URI for the track.
-		URI string `json:"uri"`
-		// Local is whether the track is from a local file.
-		Local bool `json:"is_local"`
-	}
-	Episode *struct {
-		// Deprecated: AudioPreviewURL is a URL to a 30-second preview (MP3 format) of the episode. null if not available.
-		AudioPreviewURL *string `json:"audio_preview_url"`
-		// Description is a description of the episode. HTML tags are stripped away from this field, use html_description field in case HTML tags are needed.
-		Description string `json:"description"`
-		// HTMLDescription is a description of the episode. This field may contain HTML tags.
-		HTMLDescription string `json:"html_description"`
-		// DurationMs is the episode length in milliseconds.
-		DurationMs int `json:"duration_ms"`
-		// Explicit is whether the episode has explicit content.
-		Explicit bool `json:"explicit"`
-		// ExternalURLs is the external URLs for this episode.
-		ExternalURLs ExternalURLs `json:"external_urls"`
-		// Href is a link to the Web API endpoint providing full details of the episode.
-		Href string `json:"href"`
-		// ID is the Spotify ID for the episode.
-		ID string `json:"id"`
-		// Images is the cover art for the episode in various sizes, widest first.
-		Images []ImageObject `json:"images"`
-		// ExternallyHosted is true if the episode is hosted outside Spotify's CDN.
-		ExternallyHosted bool `json:"is_externally_hosted"`
-		// Playable is True if the episode is playable in the given market, otherwise false.
-		Playable bool `json:"is_playable"`
-		// Deprecated: Language is the language used in the episode, identified by an ISO 639 code.
-		Language *string `json:"language"`
-		// Languages is a list of the languages used in the episode, identified by their ISO 639-1 code.
-		Languages []string `json:"languages"`
-		// Name is the name of the episode.
-		Name string `json:"name"`
-		// ReleaseDate is the date the episode was first released.
-		ReleaseDate string `json:"release_date"`
-		// ReleaseDatePrecision is the precision with which release_date value is known. Allowed values are "year", "month", or "day".
-		ReleaseDatePrecision string `json:"release_date_precision"`
-		// ResumePoint is the user's most recent position in the episode.
-		// Set if the supplied access token is a user token and has the scope 'user-read-playback-position'.
-		ResumePoint struct {
-			// FullyPlayed is whether the episode has been fully played by the user.
-			FullyPlayed bool `json:"fully_played"`
-			// ResumePositionMs is the user's most recent position in the episode in milliseconds.
-			ResumePositionMs int `json:"resume_position_ms"`
-		} `json:"resume_point"`
-		// Type is the object type. Allowed values: "episode".
-		Type string `json:"type"`
-		// URI is the Spotify URI for the episode.
-		URI string `json:"uri"`
-		// Restrictions is included in the response when a content restriction is applied.
-		Restrictions *Restrictions `json:"restrictions"`
-		// Show is the show on which the episode belongs.
-		Show struct {
-			// Deprecated: AvailableMarkets is a list of the countries in which the show can be played, identified by their ISO 3166-1 alpha-2 code.
-			AvailableMarkets []string `json:"available_markets"`
-			// Copyrights is the copyright statements of the show.
-			Copyrights []CopyrightObject `json:"copyrights"`
-			// Description is a description of the show. HTML tags are stripped away from this field, use HTMLDescription field in case HTML tags are needed.
-			Description string `json:"description"`
-			// HTMLDescription is a description of the show. This field may contain HTML tags.
-			HTMLDescription string `json:"html_description"`
-			// Explicit is whether the show has explicit content.
-			Explicit bool `json:"explicit"`
-			// ExternalURLs is the external URLs for this show.
-			ExternalURLs ExternalURLs `json:"external_urls"`
-			// Href is a link to the Web API endpoint providing full details of the show.
-			Href string `json:"href"`
-			// ID is the Spotify ID for the show.
-			ID string `json:"id"`
-			// Images is the cover art for the show in various sizes, widest first.
-			Images []ImageObject `json:"images"`
-			// ExternallyHosted is true if all shows episodes are hosted outside Spotify's CDN.
-			ExternallyHosted *bool `json:"is_externally_hosted"`
-			// Languages is a list of the languages used in the show, identified by their ISO 639 code.
-			Languages []string `json:"languages"`
-			// MediaType is the media type of the show.
-			MediaType string `json:"media_type"`
-			// Name is the name of the show.
-			Name string `json:"name"`
-			// Deprecated: Publisher is the publisher of the show.
-			Publisher *string `json:"publisher"`
-			// Type is the object type. Allowed values is "show".
-			Type string `json:"type"`
-			// URI is the Spotify URI for the show.
-			URI string `json:"uri"`
-			// TotalEpisodes is the number of episodes in this show.
-			TotalEpisodes int `json:"total_episodes"`
-		} `json:"show"`
-	}
+type QueueItemObject struct {
+	Track   *TrackObject
+	Episode *EpisodeObject
 }
 
-func (q *QueueItem) UnmarshalJSON(data []byte) error {
+func (q *QueueItemObject) UnmarshalJSON(data []byte) error {
 	var peek struct {
 		Type string `json:"type"`
 	}
@@ -722,195 +157,13 @@ func (q *QueueItem) UnmarshalJSON(data []byte) error {
 
 	switch peek.Type {
 	case "track":
-		var t struct {
-			// Album is the album on which the track appears.
-			// The album object includes a link in href to full information about the album.
-			Album struct {
-				// AlbumType is the type of the album. Allowed values are "album", "single", or "compilation".
-				AlbumType string `json:"album_type"`
-				// TotalTracks is the number of tracks in the album.
-				TotalTracks int `json:"total_tracks"`
-				// Deprecated: AvailableMarkets is the markets in which the album is available: ISO 3166-1 alpha-2 country codes.
-				AvailableMarkets []string `json:"available_markets"`
-				// ExternalURLs is the known external URLs for this album.
-				ExternalURLs ExternalURLs `json:"external_urls"`
-				// Href is a link to the Web API endpoint providing full details of the album.
-				Href string `json:"href"`
-				// ID is the Spotify ID for the album.
-				ID string `json:"id"`
-				// Images is the cover art for the album in various sizes, widest first.
-				Images []ImageObject `json:"images"`
-				// Name is the name of the album. In the case of an album takedown, the value may be an empty string.
-				Name string `json:"name"`
-				// ReleaseDate is the date the album was first released.
-				ReleaseDate string `json:"release_date"`
-				// ReleaseDatePrecision is the precision with which ReleaseDate value is known. Allowed values are "year", "month", or "day".
-				ReleaseDatePrecision string `json:"release_date_precision"`
-				// Restrictions are Included in the response when a content restriction is applied.
-				Restrictions *Restrictions `json:"restrictions"`
-				// Type is the object type. Allowed values is "album".
-				Type string `json:"type"`
-				// URI is the Spotify URI for the album.
-				URI string `json:"uri"`
-				// Artists are the artists of the album. Each artist object includes a link in href to more detailed information about the artist.
-				Artists []struct { // called SimplifiedArtistObject
-					// ExternalURLs is the known external URLs for this artist.
-					ExternalURLs ExternalURLs `json:"external_urls"`
-					// Href is a link to the Web API endpoint providing full details of the artist.
-					Href string `json:"href"`
-					// ID is the Spotify ID for the artist.
-					ID string `json:"id"`
-					// Name is the name of the artist.
-					Name string `json:"name"`
-					// Type is the object type.
-					Type string `json:"type"`
-					// URI is the Spotify URI for the artist.
-					URI string `json:"uri"`
-				} `json:"artists"`
-			} `json:"album"`
-			// Artists is the artists who performed the track.
-			// Each artist object includes a link in href to more detailed information about the artist.
-			Artists []struct {
-				// ExternalURLs is the known external URLs for this artist.
-				ExternalURLs ExternalURLs `json:"external_urls"`
-				// Href is a link to the Web API endpoint providing full details of the artist.
-				Href string `json:"href"`
-				// ID is the Spotify ID for the artist.
-				ID string `json:"id"`
-				// Name is the name of the artist.
-				Name string `json:"name"`
-				// Type is the object type.
-				Type string `json:"type"`
-				// URI is the Spotify URI for the artist.
-				URI string `json:"uri"`
-			} `json:"artists"`
-			// Deprecated: AvailableMarkets is a list of the countries in which the track can be played.
-			AvailableMarkets []string `json:"available_markets"`
-			// DiscNumber is the disc number (usually 1 unless the album consists of more than one disc).
-			DiscNumber int `json:"disc_number"`
-			// DurationMs is the track length in milliseconds.
-			DurationMs int `json:"duration_ms"`
-			// Explicit is whether the track has explicit lyrics.
-			Explicit bool `json:"explicit"`
-			// ExternalIDs is the known external IDs for the track.
-			ExternalIDs ExternalIDs `json:"external_ids"`
-			// ExternalURLs is the known external URLs for this track.
-			ExternalURLs ExternalURLs `json:"external_urls"`
-			// Href is a link to the Web API endpoint providing full details of the track.
-			Href string `json:"href"`
-			// ID is the Spotify ID for the track.
-			ID string `json:"id"`
-			// Playable is true if the track is playable in the given market, otherwise false.
-			Playable bool `json:"is_playable"`
-			// Deprecated: LinkedFrom is part of the response when Track Relinking is applied, and the requested track has been replaced with different track.
-			LinkedFrom map[string]any `json:"linked_from"`
-			// Restrictions are included in the response when a content restriction is applied.
-			Restrictions *Restrictions `json:"restrictions"`
-			// Name is the name of the track.
-			Name string `json:"name"`
-			// Deprecated: Popularity is the popularity of the track. The value will be between 0 and 100, with 100 being the most popular.
-			Popularity int `json:"popularity"`
-			// Deprecated: PreviewURL is a link to a 30-second preview (MP3 format) of the track. Can be null
-			PreviewURL *string `json:"preview_url"`
-			// TrackNumber is the number of the track. If an album has several discs, the track number is the number on the specified disc.
-			TrackNumber int `json:"track_number"`
-			// Type is the object type: "track".
-			Type string `json:"type"`
-			// URI is the Spotify URI for the track.
-			URI string `json:"uri"`
-			// Local is whether the track is from a local file.
-			Local bool `json:"is_local"`
-		}
+		var t TrackObject
 		if err := json.Unmarshal(data, &t); err != nil {
 			return fmt.Errorf("failed to unmarshal track: %w", err)
 		}
 		q.Track = &t
 	case "episode":
-		var e struct {
-			// Deprecated: AudioPreviewURL is a URL to a 30-second preview (MP3 format) of the episode. null if not available.
-			AudioPreviewURL *string `json:"audio_preview_url"`
-			// Description is a description of the episode. HTML tags are stripped away from this field, use html_description field in case HTML tags are needed.
-			Description string `json:"description"`
-			// HTMLDescription is a description of the episode. This field may contain HTML tags.
-			HTMLDescription string `json:"html_description"`
-			// DurationMs is the episode length in milliseconds.
-			DurationMs int `json:"duration_ms"`
-			// Explicit is whether the episode has explicit content.
-			Explicit bool `json:"explicit"`
-			// ExternalURLs is the external URLs for this episode.
-			ExternalURLs ExternalURLs `json:"external_urls"`
-			// Href is a link to the Web API endpoint providing full details of the episode.
-			Href string `json:"href"`
-			// ID is the Spotify ID for the episode.
-			ID string `json:"id"`
-			// Images is the cover art for the episode in various sizes, widest first.
-			Images []ImageObject `json:"images"`
-			// ExternallyHosted is true if the episode is hosted outside Spotify's CDN.
-			ExternallyHosted bool `json:"is_externally_hosted"`
-			// Playable is True if the episode is playable in the given market, otherwise false.
-			Playable bool `json:"is_playable"`
-			// Deprecated: Language is the language used in the episode, identified by an ISO 639 code.
-			Language *string `json:"language"`
-			// Languages is a list of the languages used in the episode, identified by their ISO 639-1 code.
-			Languages []string `json:"languages"`
-			// Name is the name of the episode.
-			Name string `json:"name"`
-			// ReleaseDate is the date the episode was first released.
-			ReleaseDate string `json:"release_date"`
-			// ReleaseDatePrecision is the precision with which release_date value is known. Allowed values are "year", "month", or "day".
-			ReleaseDatePrecision string `json:"release_date_precision"`
-			// ResumePoint is the user's most recent position in the episode.
-			// Set if the supplied access token is a user token and has the scope 'user-read-playback-position'.
-			ResumePoint struct {
-				// FullyPlayed is whether the episode has been fully played by the user.
-				FullyPlayed bool `json:"fully_played"`
-				// ResumePositionMs is the user's most recent position in the episode in milliseconds.
-				ResumePositionMs int `json:"resume_position_ms"`
-			} `json:"resume_point"`
-			// Type is the object type. Allowed values: "episode".
-			Type string `json:"type"`
-			// URI is the Spotify URI for the episode.
-			URI string `json:"uri"`
-			// Restrictions is included in the response when a content restriction is applied.
-			Restrictions *Restrictions `json:"restrictions"`
-			// Show is the show on which the episode belongs.
-			Show struct {
-				// Deprecated: AvailableMarkets is a list of the countries in which the show can be played, identified by their ISO 3166-1 alpha-2 code.
-				AvailableMarkets []string `json:"available_markets"`
-				// Copyrights is the copyright statements of the show.
-				Copyrights []CopyrightObject `json:"copyrights"`
-				// Description is a description of the show. HTML tags are stripped away from this field, use HTMLDescription field in case HTML tags are needed.
-				Description string `json:"description"`
-				// HTMLDescription is a description of the show. This field may contain HTML tags.
-				HTMLDescription string `json:"html_description"`
-				// Explicit is whether the show has explicit content.
-				Explicit bool `json:"explicit"`
-				// ExternalURLs is the external URLs for this show.
-				ExternalURLs ExternalURLs `json:"external_urls"`
-				// Href is a link to the Web API endpoint providing full details of the show.
-				Href string `json:"href"`
-				// ID is the Spotify ID for the show.
-				ID string `json:"id"`
-				// Images is the cover art for the show in various sizes, widest first.
-				Images []ImageObject `json:"images"`
-				// ExternallyHosted is true if all shows episodes are hosted outside Spotify's CDN.
-				ExternallyHosted *bool `json:"is_externally_hosted"`
-				// Languages is a list of the languages used in the show, identified by their ISO 639 code.
-				Languages []string `json:"languages"`
-				// MediaType is the media type of the show.
-				MediaType string `json:"media_type"`
-				// Name is the name of the show.
-				Name string `json:"name"`
-				// Deprecated: Publisher is the publisher of the show.
-				Publisher *string `json:"publisher"`
-				// Type is the object type. Allowed values is "show".
-				Type string `json:"type"`
-				// URI is the Spotify URI for the show.
-				URI string `json:"uri"`
-				// TotalEpisodes is the number of episodes in this show.
-				TotalEpisodes int `json:"total_episodes"`
-			} `json:"show"`
-		}
+		var e EpisodeObject
 		if err := json.Unmarshal(data, &e); err != nil {
 			return fmt.Errorf("failed to unmarshal episode: %w", err)
 		}
@@ -924,112 +177,14 @@ func (q *QueueItem) UnmarshalJSON(data []byte) error {
 
 type UserQueue struct {
 	// CurrentlyPlaying is the currently playing track or episode. Can be null.
-	CurrentlyPlaying *QueueItem `json:"currently_playing"`
+	CurrentlyPlaying *QueueItemObject `json:"currently_playing"`
 	// Queue is the tracks or episodes in the queue. Can be empty.
-	Queue []QueueItem `json:"queue"`
+	Queue []QueueItemObject `json:"queue"`
 }
 
 type PlayHistoryObject struct {
 	// Track is the track the user listened to.
-	Track struct {
-		// Album is the album on which the track appears.
-		// The album object includes a link in href to full information about the album.
-		Album struct {
-			// AlbumType is the type of the album. Allowed values are "album", "single", or "compilation".
-			AlbumType string `json:"album_type"`
-			// TotalTracks is the number of tracks in the album.
-			TotalTracks int `json:"total_tracks"`
-			// Deprecated: AvailableMarkets is the markets in which the album is available: ISO 3166-1 alpha-2 country codes.
-			AvailableMarkets []string `json:"available_markets"`
-			// ExternalURLs is the known external URLs for this album.
-			ExternalURLs ExternalURLs `json:"external_urls"`
-			// Href is a link to the Web API endpoint providing full details of the album.
-			Href string `json:"href"`
-			// ID is the Spotify ID for the album.
-			ID string `json:"id"`
-			// Images is the cover art for the album in various sizes, widest first.
-			Images []ImageObject `json:"images"`
-			// Name is the name of the album. In the case of an album takedown, the value may be an empty string.
-			Name string `json:"name"`
-			// ReleaseDate is the date the album was first released.
-			ReleaseDate string `json:"release_date"`
-			// ReleaseDatePrecision is the precision with which ReleaseDate value is known. Allowed values are "year", "month", or "day".
-			ReleaseDatePrecision string `json:"release_date_precision"`
-			// Restrictions are Included in the response when a content restriction is applied.
-			Restrictions *Restrictions `json:"restrictions"`
-			// Type is the object type. Allowed values is "album".
-			Type string `json:"type"`
-			// URI is the Spotify URI for the album.
-			URI string `json:"uri"`
-			// Artists are the artists of the album. Each artist object includes a link in href to more detailed information about the artist.
-			Artists []struct { // called SimplifiedArtistObject
-				// ExternalURLs is the known external URLs for this artist.
-				ExternalURLs ExternalURLs `json:"external_urls"`
-				// Href is a link to the Web API endpoint providing full details of the artist.
-				Href string `json:"href"`
-				// ID is the Spotify ID for the artist.
-				ID string `json:"id"`
-				// Name is the name of the artist.
-				Name string `json:"name"`
-				// Type is the object type.
-				Type string `json:"type"`
-				// URI is the Spotify URI for the artist.
-				URI string `json:"uri"`
-			} `json:"artists"`
-		} `json:"album"`
-		// Artists is the artists who performed the track.
-		// Each artist object includes a link in href to more detailed information about the artist.
-		Artists []struct {
-			// ExternalURLs is the known external URLs for this artist.
-			ExternalURLs ExternalURLs `json:"external_urls"`
-			// Href is a link to the Web API endpoint providing full details of the artist.
-			Href string `json:"href"`
-			// ID is the Spotify ID for the artist.
-			ID string `json:"id"`
-			// Name is the name of the artist.
-			Name string `json:"name"`
-			// Type is the object type.
-			Type string `json:"type"`
-			// URI is the Spotify URI for the artist.
-			URI string `json:"uri"`
-		} `json:"artists"`
-		// Deprecated: AvailableMarkets is a list of the countries in which the track can be played.
-		AvailableMarkets []string `json:"available_markets"`
-		// DiscNumber is the disc number (usually 1 unless the album consists of more than one disc).
-		DiscNumber int `json:"disc_number"`
-		// DurationMs is the track length in milliseconds.
-		DurationMs int `json:"duration_ms"`
-		// Explicit is whether the track has explicit lyrics.
-		Explicit bool `json:"explicit"`
-		// ExternalIDs is the known external IDs for the track.
-		ExternalIDs ExternalIDs `json:"external_ids"`
-		// ExternalURLs is the known external URLs for this track.
-		ExternalURLs ExternalURLs `json:"external_urls"`
-		// Href is a link to the Web API endpoint providing full details of the track.
-		Href string `json:"href"`
-		// ID is the Spotify ID for the track.
-		ID string `json:"id"`
-		// Playable is true if the track is playable in the given market, otherwise false.
-		Playable bool `json:"is_playable"`
-		// Deprecated: LinkedFrom is part of the response when Track Relinking is applied, and the requested track has been replaced with different track.
-		LinkedFrom map[string]any `json:"linked_from"`
-		// Restrictions are included in the response when a content restriction is applied.
-		Restrictions *Restrictions `json:"restrictions"`
-		// Name is the name of the track.
-		Name string `json:"name"`
-		// Deprecated: Popularity is the popularity of the track. The value will be between 0 and 100, with 100 being the most popular.
-		Popularity int `json:"popularity"`
-		// Deprecated: PreviewURL is a link to a 30-second preview (MP3 format) of the track. Can be null
-		PreviewURL *string `json:"preview_url"`
-		// TrackNumber is the number of the track. If an album has several discs, the track number is the number on the specified disc.
-		TrackNumber int `json:"track_number"`
-		// Type is the object type: "track".
-		Type string `json:"type"`
-		// URI is the Spotify URI for the track.
-		URI string `json:"uri"`
-		// Local is whether the track is from a local file.
-		Local bool `json:"is_local"`
-	} `json:"track"`
+	Track TrackObject `json:"track"`
 	// PlayedAt is the date and time the track was played.
 	PlayedAt string `json:"played_at"`
 	// Context is the context the track was played from.

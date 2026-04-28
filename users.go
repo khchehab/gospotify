@@ -19,8 +19,8 @@ func (c *Client) GetCurrentUserProfile(ctx context.Context) (*CurrentUserProfile
 // * [WithTimeRange]: Specify the time frame the affinities are computed.
 // * [WithLimit]: The maximum number of items to return.
 // * [WithOffset]: The index of the first item to return.
-func (c *Client) GetUserTopArtists(ctx context.Context, opts ...QueryOption) (*Page[UserTopArtists], error) {
-	var topArtists Page[UserTopArtists]
+func (c *Client) GetUserTopArtists(ctx context.Context, opts ...QueryOption) (*Page[ArtistObject], error) {
+	var topArtists Page[ArtistObject]
 	if err := c.get(ctx, "/me/top/artists", &topArtists, opts...); err != nil {
 		return nil, err
 	}
@@ -33,8 +33,8 @@ func (c *Client) GetUserTopArtists(ctx context.Context, opts ...QueryOption) (*P
 // * [WithTimeRange]: Specify the time frame the affinities are computed.
 // * [WithLimit]: The maximum number of items to return.
 // * [WithOffset]: The index of the first item to return.
-func (c *Client) GetUserTopTracks(ctx context.Context, opts ...QueryOption) (*Page[UserTopTracks], error) {
-	var topTracks Page[UserTopTracks]
+func (c *Client) GetUserTopTracks(ctx context.Context, opts ...QueryOption) (*Page[TrackObject], error) {
+	var topTracks Page[TrackObject]
 	if err := c.get(ctx, "/me/top/tracks", &topTracks, opts...); err != nil {
 		return nil, err
 	}
@@ -46,9 +46,9 @@ func (c *Client) GetUserTopTracks(ctx context.Context, opts ...QueryOption) (*Pa
 // QueryOptions that can be used are:
 // * [WithAfter]: The last artist ID retrieved from the previous request.
 // * [WithLimit]: The maximum number of items to return.
-func (c *Client) GetFollowedArtists(ctx context.Context, opts ...QueryOption) (*Cursor[FollowedArtists], error) {
+func (c *Client) GetFollowedArtists(ctx context.Context, opts ...QueryOption) (*Cursor[ArtistObject], error) {
 	var response struct {
-		Artists Cursor[FollowedArtists] `json:"artists"`
+		Artists Cursor[ArtistObject] `json:"artists"`
 	}
 	if err := c.get(ctx, "/me/following?type=artist", &response, opts...); err != nil {
 		return nil, err
