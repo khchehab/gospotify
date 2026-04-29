@@ -10,7 +10,7 @@ import (
 
 func TestSearchForItem_EmptyQuery_ReturnsError(t *testing.T) {
 	client := newTestClient("http://unused")
-	_, err := client.SearchForItem(context.Background(), "", []string{"track"})
+	_, err := client.SearchForItem(context.Background(), "", []ItemType{ItemTypeTrack})
 	if err == nil {
 		t.Fatal("expected error for empty query")
 	}
@@ -21,7 +21,7 @@ func TestSearchForItem_EmptyQuery_ReturnsError(t *testing.T) {
 
 func TestSearchForItem_EmptyTypes_ReturnsError(t *testing.T) {
 	client := newTestClient("http://unused")
-	_, err := client.SearchForItem(context.Background(), "test", []string{})
+	_, err := client.SearchForItem(context.Background(), "test", []ItemType{})
 	if err == nil {
 		t.Fatal("expected error for empty types")
 	}
@@ -51,7 +51,7 @@ func TestSearchForItem_Success(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv.URL)
-	result, err := client.SearchForItem(context.Background(), "test query", []string{"track", "artist"})
+	result, err := client.SearchForItem(context.Background(), "test query", []ItemType{ItemTypeTrack, ItemTypeArtist})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -76,7 +76,7 @@ func TestSearchForItem_SpecialCharsInQuery_AreEncoded(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv.URL)
-	_, err := client.SearchForItem(context.Background(), "hello world", []string{"track"})
+	_, err := client.SearchForItem(context.Background(), "hello world", []ItemType{ItemTypeTrack})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -98,7 +98,7 @@ func TestSearchForItem_WithOptions(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv.URL)
-	_, err := client.SearchForItem(context.Background(), "beatles", []string{"track"}, WithLimit(10), WithMarket("US"))
+	_, err := client.SearchForItem(context.Background(), "beatles", []ItemType{ItemTypeTrack}, WithLimit(10), WithMarket("US"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -113,7 +113,7 @@ func TestSearchForItem_APIError(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv.URL)
-	_, err := client.SearchForItem(context.Background(), "test", []string{"track"})
+	_, err := client.SearchForItem(context.Background(), "test", []ItemType{ItemTypeTrack})
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -126,7 +126,7 @@ func TestSearchForItem_APIError(t *testing.T) {
 	}
 }
 
-func TestConcatenateSearch(t *testing.T) {
+func TestAppendQueryParams_Search(t *testing.T) {
 	tests := []struct {
 		name     string
 		endpoint string
@@ -159,7 +159,10 @@ func TestConcatenateSearch(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := concatenateSearch(tt.endpoint, tt.q, tt.types)
+			got := appendQueryParams(tt.endpoint,
+				requiredQueryParam{key: "q", value: tt.q},
+				requiredQueryParam{key: "types", value: tt.types},
+			)
 			if got != tt.want {
 				t.Errorf("got %q, want %q", got, tt.want)
 			}

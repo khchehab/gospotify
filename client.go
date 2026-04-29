@@ -117,7 +117,7 @@ func (c *Client) execute(req *http.Request, response any) error {
 	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusMultipleChoices {
 		var errResponse *ErrorResponse
 		if err = json.Unmarshal(b, &errResponse); err != nil {
-			return err
+			return fmt.Errorf("unexpected Spotify error response (HTTP %d): %w - body: %s", res.StatusCode, err, string(b))
 		}
 		return errResponse
 	}

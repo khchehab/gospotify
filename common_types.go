@@ -6,8 +6,26 @@ type Scope string
 // TimeRange is the time frame the affinities are computed.
 type TimeRange string
 
+// Valid checks if the time range is valid based on a pre-defined allowed values.
+func (t TimeRange) Valid() bool {
+	switch t {
+	case LongTerm, MediumTerm, ShortTerm:
+		return true
+	}
+	return false
+}
+
 // RepeatState represents a repeat state data type.
 type RepeatState string
+
+// Valid checks if the repeat state is valid based on a pre-defined allowed values.
+func (s RepeatState) Valid() bool {
+	switch s {
+	case RepeatOff, RepeatTrack, RepeatContext:
+		return true
+	}
+	return false
+}
 
 // ItemType represents an item type data type.
 type ItemType string

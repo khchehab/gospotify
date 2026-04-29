@@ -41,7 +41,7 @@ func (c *Client) SearchForItem(ctx context.Context, q string, types []ItemType, 
 
 	var searchResult SearchResult
 	if err := c.get(ctx, endpoint, &searchResult, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("SearchForItem [%q] [%q]: %w", q, types, err)
 	}
 	return &searchResult, nil
 }

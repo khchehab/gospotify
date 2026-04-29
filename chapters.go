@@ -2,6 +2,7 @@ package gospotify
 
 import (
 	"context"
+	"fmt"
 )
 
 // GetChapter gets Spotify catalog information for a single audiobook chapter.
@@ -15,7 +16,7 @@ func (c *Client) GetChapter(ctx context.Context, id string, opts ...QueryOption)
 	}
 	var chapter ChapterObject
 	if err := c.get(ctx, "/chapters/"+id, &chapter, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetChapter %q: %w", id, err)
 	}
 	return &chapter, nil
 }

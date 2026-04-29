@@ -2,6 +2,7 @@ package gospotify
 
 import (
 	"context"
+	"fmt"
 )
 
 // GetAudiobook gets Spotify catalog information for a single audiobook.
@@ -15,7 +16,7 @@ func (c *Client) GetAudiobook(ctx context.Context, id string, opts ...QueryOptio
 	}
 	var audiobook AudiobookObject
 	if err := c.get(ctx, "/audiobooks/"+id, &audiobook, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetAudiobook %q: %w", id, err)
 	}
 	return &audiobook, nil
 }
@@ -33,7 +34,7 @@ func (c *Client) GetAudiobookChapters(ctx context.Context, id string, opts ...Qu
 	}
 	var audiobookChapters Page[SimplifiedChapterObject]
 	if err := c.get(ctx, "/audiobooks/"+id+"/chapters", &audiobookChapters, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetAudiobookChapters %q: %w", id, err)
 	}
 	return &audiobookChapters, nil
 }
@@ -45,8 +46,8 @@ func (c *Client) GetAudiobookChapters(ctx context.Context, id string, opts ...Qu
 // * [WithOffset]: The index of the first item to return.
 func (c *Client) GetUserSavedAudiobooks(ctx context.Context, opts ...QueryOption) (*Page[SimplifiedAudiobookObject], error) {
 	var savedAudiobooks Page[SimplifiedAudiobookObject]
-	if err := c.get(ctx, "/me/audiobooks/", &savedAudiobooks, opts...); err != nil {
-		return nil, err
+	if err := c.get(ctx, "/me/audiobooks", &savedAudiobooks, opts...); err != nil {
+		return nil, fmt.Errorf("GetUserSavedAudiobooks: %w", err)
 	}
 	return &savedAudiobooks, nil
 }

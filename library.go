@@ -2,6 +2,7 @@ package gospotify
 
 import (
 	"context"
+	"fmt"
 )
 
 // SaveItemsToLibrary adds one or more items to the current user's library.
@@ -17,7 +18,7 @@ func (c *Client) SaveItemsToLibrary(ctx context.Context, uris []string) error {
 	})
 
 	if err := c.put(ctx, endpoint, nil, "", nil); err != nil {
-		return err
+		return fmt.Errorf("SaveItemsToLibrary [%q]: %w", uris, err)
 	}
 	return nil
 }
@@ -35,7 +36,7 @@ func (c *Client) RemoveItemsFromLibrary(ctx context.Context, uris []string) erro
 	})
 
 	if err := c.delete(ctx, endpoint, nil, nil); err != nil {
-		return err
+		return fmt.Errorf("RemoveItemsFromLibrary [%q]: %w", uris, err)
 	}
 	return nil
 }
@@ -54,7 +55,7 @@ func (c *Client) CheckUserSavedItems(ctx context.Context, uris []string) ([]bool
 
 	var savedItems []bool
 	if err := c.get(ctx, endpoint, &savedItems); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("CheckUserSavedItems [%q]: %w", uris, err)
 	}
 	return savedItems, nil
 }

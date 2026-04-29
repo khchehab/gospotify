@@ -2,9 +2,11 @@ package gospotify
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -29,7 +31,7 @@ func TestGetPlaybackState_Success(t *testing.T) {
 	}
 }
 
-func TestGetPlaybackState_204_ReturnsNilPlayback(t *testing.T) {
+func TestGetPlaybackState_204_ReturnsError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}))
@@ -37,12 +39,14 @@ func TestGetPlaybackState_204_ReturnsNilPlayback(t *testing.T) {
 
 	client := newTestClient(srv.URL)
 	state, err := client.GetPlaybackState(context.Background())
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+	if err == nil {
+		t.Fatal("expected error when playback is not available")
 	}
-	// 204 means no active playback — state will be zero-value (not nil since it's a value type)
-	if state.Playing {
-		t.Error("expected Playing=false for 204 response")
+	if err.Error() != "playback is not available or active" {
+		t.Errorf("got %q, want 'playback is not available or active'", err.Error())
+	}
+	if state != nil {
+		t.Error("expected nil state when playback is not available")
 	}
 }
 
@@ -248,7 +252,7 @@ func TestSeekToPosition_Success(t *testing.T) {
 
 func TestSetRepeatMode_EmptyState_ReturnsError(t *testing.T) {
 	client := newTestClient("http://unused")
-	err := client.SetRepeatMode(context.Background(), "")
+	err := client.SetRepeatMode(context.Background(), RepeatState(""))
 	if err == nil {
 		t.Fatal("expected error for empty state")
 	}
@@ -259,28 +263,36 @@ func TestSetRepeatMode_EmptyState_ReturnsError(t *testing.T) {
 
 func TestSetRepeatMode_InvalidState_ReturnsError(t *testing.T) {
 	client := newTestClient("http://unused")
-	err := client.SetRepeatMode(context.Background(), "invalid")
+	err := client.SetRepeatMode(context.Background(), RepeatState("invalid"))
 	if err == nil {
 		t.Fatal("expected error for invalid state")
 	}
 }
 
 func TestSetRepeatMode_ValidStates(t *testing.T) {
-	states := []string{"track", "context", "off"}
-	for _, state := range states {
-		t.Run(state, func(t *testing.T) {
+	cases := []struct {
+		name  string
+		state RepeatState
+	}{
+		{"track", RepeatTrack},
+		{"context", RepeatContext},
+		{"off", RepeatOff},
+	}
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if r.URL.Query().Get("state") != state {
-					t.Errorf("expected state=%s, got %q", state, r.URL.Query().Get("state"))
+				if r.URL.Query().Get("state") != string(tc.state) {
+					t.Errorf("expected state=%s, got %q", tc.state, r.URL.Query().Get("state"))
 				}
 				w.WriteHeader(http.StatusNoContent)
 			}))
 			defer srv.Close()
 
 			client := newTestClient(srv.URL)
-			err := client.SetRepeatMode(context.Background(), state)
+			err := client.SetRepeatMode(context.Background(), tc.state)
 			if err != nil {
-				t.Fatalf("unexpected error for state %q: %v", state, err)
+				t.Fatalf("unexpected error for state %q: %v", tc.state, err)
 			}
 		})
 	}
@@ -411,6 +423,7 @@ func TestGetUserQueue_Success(t *testing.T) {
 }
 
 func TestAddItemToPlaybackQueue_Success(t *testing.T) {
+	uri := "spotify:track:abc123"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Errorf("expected POST, got %s", r.Method)
@@ -418,62 +431,265 @@ func TestAddItemToPlaybackQueue_Success(t *testing.T) {
 		if r.URL.Path != "/me/player/queue" {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
-		if r.URL.Query().Get("uri") != "spotify:track:abc123" {
-			t.Errorf("expected uri=spotify:track:abc123, got %q", r.URL.Query().Get("uri"))
+		if r.URL.Query().Get("uri") != uri {
+			t.Errorf("expected uri=%s in query, got %q", uri, r.URL.RawQuery)
 		}
 		w.WriteHeader(http.StatusNoContent)
 	}))
 	defer srv.Close()
 
 	client := newTestClient(srv.URL)
-	err := client.AddItemToPlaybackQueue(context.Background(), "spotify:track:abc123")
+	err := client.AddItemToPlaybackQueue(context.Background(), uri)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
 
-func TestConcatenatePosition(t *testing.T) {
-	got := concatenatePosition("/me/player/seek", 30000)
+func TestAppendQueryParams_PositionMs(t *testing.T) {
+	got := appendQueryParams("/me/player/seek", requiredQueryParam{key: "position_ms", value: 30000})
 	want := "/me/player/seek?position_ms=30000"
 	if got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
 
-func TestConcatenateVolumePercent(t *testing.T) {
-	got := concatenateVolumePercent("/me/player/volume", 75)
+func TestAppendQueryParams_VolumePercent(t *testing.T) {
+	got := appendQueryParams("/me/player/volume", requiredQueryParam{key: "volume_percent", value: 75})
 	want := "/me/player/volume?volume_percent=75"
 	if got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
 
-func TestConcatenateState(t *testing.T) {
-	got := concatenateState("/me/player/repeat", "track")
+func TestAppendQueryParams_StateString(t *testing.T) {
+	got := appendQueryParams("/me/player/repeat", requiredQueryParam{key: "state", value: "track"})
 	want := "/me/player/repeat?state=track"
 	if got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
 
-func TestConcatenateStateB(t *testing.T) {
-	got := concatenateStateB("/me/player/shuffle", true)
+func TestAppendQueryParams_StateBool(t *testing.T) {
+	got := appendQueryParams("/me/player/shuffle", requiredQueryParam{key: "state", value: true})
 	want := "/me/player/shuffle?state=true"
 	if got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}
 
-	got = concatenateStateB("/me/player/shuffle", false)
+	got = appendQueryParams("/me/player/shuffle", requiredQueryParam{key: "state", value: false})
 	want = "/me/player/shuffle?state=false"
 	if got != want {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
 
-func TestConcatenateURI(t *testing.T) {
-	got := concatenateURI("/me/player/queue", "spotify:track:abc")
-	want := "/me/player/queue?uri=spotify:track:abc"
-	if got != want {
-		t.Errorf("got %q, want %q", got, want)
+// ---- PlaybackObject.UnmarshalJSON ----
+
+func TestPlaybackObject_UnmarshalJSON_TrackItem(t *testing.T) {
+	data := `{
+		"is_playing": true,
+		"repeat_state": "off",
+		"shuffle_state": false,
+		"currently_playing_type": "track",
+		"item": {"type": "track", "id": "t1", "name": "My Track", "duration_ms": 180000}
+	}`
+	var p PlaybackObject
+	if err := json.Unmarshal([]byte(data), &p); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if p.Track == nil {
+		t.Fatal("expected Track to be non-nil")
+	}
+	if p.Episode != nil {
+		t.Error("expected Episode to be nil")
+	}
+	if p.Track.ID != "t1" {
+		t.Errorf("got Track.ID %q, want t1", p.Track.ID)
+	}
+}
+
+func TestPlaybackObject_UnmarshalJSON_EpisodeItem(t *testing.T) {
+	data := `{
+		"is_playing": true,
+		"repeat_state": "off",
+		"shuffle_state": false,
+		"currently_playing_type": "episode",
+		"item": {"type": "episode", "id": "e1", "name": "My Episode", "duration_ms": 3600000}
+	}`
+	var p PlaybackObject
+	if err := json.Unmarshal([]byte(data), &p); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if p.Episode == nil {
+		t.Fatal("expected Episode to be non-nil")
+	}
+	if p.Track != nil {
+		t.Error("expected Track to be nil")
+	}
+	if p.Episode.ID != "e1" {
+		t.Errorf("got Episode.ID %q, want e1", p.Episode.ID)
+	}
+}
+
+func TestPlaybackObject_UnmarshalJSON_NoItem_BothNil(t *testing.T) {
+	// item field is absent — raw.Item will be nil, so we return early with no error.
+	data := `{
+		"is_playing": false,
+		"repeat_state": "off",
+		"shuffle_state": false,
+		"currently_playing_type": "unknown"
+	}`
+	var p PlaybackObject
+	if err := json.Unmarshal([]byte(data), &p); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if p.Track != nil {
+		t.Error("expected Track to be nil when item is absent")
+	}
+	if p.Episode != nil {
+		t.Error("expected Episode to be nil when item is absent")
+	}
+}
+
+func TestPlaybackObject_UnmarshalJSON_UnknownItemType_ReturnsError(t *testing.T) {
+	data := `{
+		"is_playing": true,
+		"item": {"type": "unknown_type", "id": "x1"}
+	}`
+	var p PlaybackObject
+	err := json.Unmarshal([]byte(data), &p)
+	if err == nil {
+		t.Fatal("expected error for unknown item type")
+	}
+	if !strings.Contains(err.Error(), "unknown item type") {
+		t.Errorf("expected error to contain 'unknown item type', got %q", err.Error())
+	}
+}
+
+// ---- QueueItemObject.UnmarshalJSON ----
+
+func TestQueueItemObject_UnmarshalJSON_Track(t *testing.T) {
+	data := `{"type": "track", "id": "t2", "name": "Queue Track", "duration_ms": 200000}`
+	var q QueueItemObject
+	if err := json.Unmarshal([]byte(data), &q); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if q.Track == nil {
+		t.Fatal("expected Track to be non-nil")
+	}
+	if q.Episode != nil {
+		t.Error("expected Episode to be nil")
+	}
+	if q.Track.ID != "t2" {
+		t.Errorf("got Track.ID %q, want t2", q.Track.ID)
+	}
+}
+
+func TestQueueItemObject_UnmarshalJSON_Episode(t *testing.T) {
+	data := `{"type": "episode", "id": "e2", "name": "Queue Episode", "duration_ms": 1800000}`
+	var q QueueItemObject
+	if err := json.Unmarshal([]byte(data), &q); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if q.Episode == nil {
+		t.Fatal("expected Episode to be non-nil")
+	}
+	if q.Track != nil {
+		t.Error("expected Track to be nil")
+	}
+	if q.Episode.ID != "e2" {
+		t.Errorf("got Episode.ID %q, want e2", q.Episode.ID)
+	}
+}
+
+func TestQueueItemObject_UnmarshalJSON_UnknownType_ReturnsError(t *testing.T) {
+	data := `{"type": "ad", "id": "ad1"}`
+	var q QueueItemObject
+	err := json.Unmarshal([]byte(data), &q)
+	if err == nil {
+		t.Fatal("expected error for unknown item type")
+	}
+	if !strings.Contains(err.Error(), "unknown item type") {
+		t.Errorf("expected error to contain 'unknown item type', got %q", err.Error())
+	}
+}
+
+// ---- GetAlbum error wrapping ----
+
+func TestGetAlbum_404Error_ContainsFunctionName(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`{"error":{"status":404,"message":"not found"}}`))
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	_, err := client.GetAlbum(context.Background(), "bad-id")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "GetAlbum") {
+		t.Errorf("expected error to contain 'GetAlbum', got %q", err.Error())
+	}
+}
+
+// ---- GetTrack error wrapping ----
+
+func TestGetTrack_404Error_ContainsFunctionName(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`{"error":{"status":404,"message":"not found"}}`))
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	_, err := client.GetTrack(context.Background(), "bad-id")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "GetTrack") {
+		t.Errorf("expected error to contain 'GetTrack', got %q", err.Error())
+	}
+}
+
+// ---- GetPlaylist error wrapping ----
+
+func TestGetPlaylist_404Error_ContainsFunctionName(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`{"error":{"status":404,"message":"not found"}}`))
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	_, err := client.GetPlaylist(context.Background(), "bad-id")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "GetPlaylist") {
+		t.Errorf("expected error to contain 'GetPlaylist', got %q", err.Error())
+	}
+}
+
+// ---- SearchForItem error wrapping ----
+
+func TestSearchForItem_404Error_ContainsFunctionName(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(`{"error":{"status":404,"message":"not found"}}`))
+	}))
+	defer srv.Close()
+
+	client := newTestClient(srv.URL)
+	_, err := client.SearchForItem(context.Background(), "test", []ItemType{ItemTypeTrack})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "SearchForItem") {
+		t.Errorf("expected error to contain 'SearchForItem', got %q", err.Error())
 	}
 }

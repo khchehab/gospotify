@@ -283,7 +283,8 @@ func TestShutdownServer_RunningServer(t *testing.T) {
 	}
 	go srv.Serve(ln) //nolint:errcheck
 
-	shutdownServer(srv)
+	a := NewAuthenticator("id", "secret", "http://localhost/callback", nil)
+	a.shutdownServer(srv)
 
 	_, err = net.DialTimeout("tcp", "127.0.0.1:"+formatPort(port), 200*time.Millisecond)
 	if err == nil {
@@ -301,5 +302,69 @@ func TestShutdownServer_AlreadyStopped(t *testing.T) {
 			t.Errorf("shutdownServer panicked: %v", r)
 		}
 	}()
-	shutdownServer(srv)
+	a := NewAuthenticator("id", "secret", "http://localhost/callback", nil)
+	a.shutdownServer(srv)
+}
+
+// ---- scopesToString ----
+
+func TestScopesToString_EmptySlice_ReturnsEmptySlice(t *testing.T) {
+	result := scopesToString([]Scope{})
+	if len(result) != 0 {
+		t.Errorf("got len %d, want 0", len(result))
+	}
+}
+
+func TestScopesToString_NilSlice_ReturnsEmptySlice(t *testing.T) {
+	result := scopesToString(nil)
+	if len(result) != 0 {
+		t.Errorf("got len %d, want 0", len(result))
+	}
+}
+
+func TestScopesToString_SingleScope_ReturnsCorrectString(t *testing.T) {
+	result := scopesToString([]Scope{ScopeUserReadEmail})
+	if len(result) != 1 {
+		t.Fatalf("got len %d, want 1", len(result))
+	}
+	if result[0] != "user-read-email" {
+		t.Errorf("got %q, want user-read-email", result[0])
+	}
+}
+
+func TestScopesToString_MultipleScopes_PreservesOrder(t *testing.T) {
+	scopes := []Scope{
+		ScopeUserReadEmail,
+		ScopeUserReadPrivate,
+		ScopePlaylistReadPrivate,
+	}
+	result := scopesToString(scopes)
+	if len(result) != 3 {
+		t.Fatalf("got len %d, want 3", len(result))
+	}
+	expected := []string{"user-read-email", "user-read-private", "playlist-read-private"}
+	for i, want := range expected {
+		if result[i] != want {
+			t.Errorf("result[%d]: got %q, want %q", i, result[i], want)
+		}
+	}
+}
+
+func TestScopesToString_AllStringsAreStrings(t *testing.T) {
+	scopes := []Scope{
+		ScopeUgcImageUpload,
+		ScopeUserModifyPlaybackState,
+		ScopeStreaming,
+		ScopeUserFollowModify,
+		ScopeUserLibraryRead,
+	}
+	result := scopesToString(scopes)
+	if len(result) != len(scopes) {
+		t.Fatalf("got len %d, want %d", len(result), len(scopes))
+	}
+	for i, scope := range scopes {
+		if result[i] != string(scope) {
+			t.Errorf("result[%d]: got %q, want %q", i, result[i], string(scope))
+		}
+	}
 }

@@ -1,6 +1,14 @@
 package gospotify
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
+
+var (
+	// ErrNoActivePlayback is an error indicating a playback is not available or active
+	ErrNoActivePlayback = errors.New("playback is not available or active")
+)
 
 // ErrorResponse is the error response returned by the Spotify API.
 type ErrorResponse struct {

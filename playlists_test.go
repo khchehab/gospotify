@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -153,8 +154,8 @@ func TestUpdatePlaylistItems_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if *snapshotID != "newsnap1" {
-		t.Errorf("got snapshot_id %q, want 'newsnap1'", *snapshotID)
+	if snapshotID != "newsnap1" {
+		t.Errorf("got snapshot_id %q, want 'newsnap1'", snapshotID)
 	}
 }
 
@@ -185,8 +186,8 @@ func TestAddItemsToPlaylist_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if *snapshotID != "snap2" {
-		t.Errorf("got snapshot_id %q, want 'snap2'", *snapshotID)
+	if snapshotID != "snap2" {
+		t.Errorf("got snapshot_id %q, want 'snap2'", snapshotID)
 	}
 }
 
@@ -217,8 +218,8 @@ func TestRemovePlaylistItems_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if *snapshotID != "snap3" {
-		t.Errorf("got snapshot_id %q, want 'snap3'", *snapshotID)
+	if snapshotID != "snap3" {
+		t.Errorf("got snapshot_id %q, want 'snap3'", snapshotID)
 	}
 }
 
@@ -316,8 +317,8 @@ func TestAddCustomPlaylistCoverImage_EmptyBody_ReturnsError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for empty body")
 	}
-	if err.Error() != "body cannot be empty" {
-		t.Errorf("got %q, want 'body cannot be empty'", err.Error())
+	if err.Error() != "image data cannot be empty" {
+		t.Errorf("got %q, want 'image data cannot be empty'", err.Error())
 	}
 }
 
@@ -339,5 +340,168 @@ func TestAddCustomPlaylistCoverImage_Success(t *testing.T) {
 	}
 	if capturedContentType != "image/jpeg" {
 		t.Errorf("got Content-Type %q, want 'image/jpeg'", capturedContentType)
+	}
+}
+
+// ---- PlaylistTrackObject.UnmarshalJSON ----
+//
+// Note: UnmarshalJSON calls unmarshalTrackOrEpisode(data) where data is the
+// outer PlaylistTrackObject JSON (not the nested item). The helper inspects
+// the top-level "type" field of data to determine whether to unmarshal a track
+// or episode. The "item" field is only used to decide whether to attempt
+// unmarshal at all (nil raw.Item means absent field → skip).
+
+func TestPlaylistTrackObject_UnmarshalJSON_TrackItem(t *testing.T) {
+	// The outer JSON must carry a top-level "type":"track" so that
+	// unmarshalTrackOrEpisode(data) finds the correct type.
+	data := `{
+		"added_at": "2021-01-01T00:00:00Z",
+		"is_local": false,
+		"type": "track",
+		"id": "t1",
+		"name": "My Track",
+		"duration_ms": 180000,
+		"item": {"type": "track", "id": "t1"}
+	}`
+	var p PlaylistTrackObject
+	if err := json.Unmarshal([]byte(data), &p); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if p.Track == nil {
+		t.Fatal("expected Track to be non-nil")
+	}
+	if p.Episode != nil {
+		t.Error("expected Episode to be nil")
+	}
+	if p.Track.ID != "t1" {
+		t.Errorf("got Track.ID %q, want t1", p.Track.ID)
+	}
+}
+
+func TestPlaylistTrackObject_UnmarshalJSON_EpisodeItem(t *testing.T) {
+	data := `{
+		"added_at": "2021-06-15T12:00:00Z",
+		"is_local": false,
+		"type": "episode",
+		"id": "e1",
+		"name": "My Episode",
+		"duration_ms": 3600000,
+		"item": {"type": "episode", "id": "e1"}
+	}`
+	var p PlaylistTrackObject
+	if err := json.Unmarshal([]byte(data), &p); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if p.Episode == nil {
+		t.Fatal("expected Episode to be non-nil")
+	}
+	if p.Track != nil {
+		t.Error("expected Track to be nil")
+	}
+	if p.Episode.ID != "e1" {
+		t.Errorf("got Episode.ID %q, want e1", p.Episode.ID)
+	}
+}
+
+func TestPlaylistTrackObject_UnmarshalJSON_NoItem_BothNil(t *testing.T) {
+	// When the "item" field is absent, raw.Item is nil and we return early
+	// without attempting to unmarshal a track or episode.
+	data := `{"added_at": "2021-01-01T00:00:00Z", "is_local": false}`
+	var p PlaylistTrackObject
+	if err := json.Unmarshal([]byte(data), &p); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if p.Track != nil {
+		t.Error("expected Track to be nil when item is absent")
+	}
+	if p.Episode != nil {
+		t.Error("expected Episode to be nil when item is absent")
+	}
+}
+
+func TestPlaylistTrackObject_UnmarshalJSON_UnknownType_ReturnsError(t *testing.T) {
+	data := `{
+		"added_at": "2021-01-01T00:00:00Z",
+		"is_local": false,
+		"type": "weird_type",
+		"item": {"type": "weird_type", "id": "x1"}
+	}`
+	var p PlaylistTrackObject
+	err := json.Unmarshal([]byte(data), &p)
+	if err == nil {
+		t.Fatal("expected error for unknown item type")
+	}
+	if !strings.Contains(err.Error(), "unknown item type") {
+		t.Errorf("expected error to contain 'unknown item type', got %q", err.Error())
+	}
+}
+
+// ---- PlaylistObject fields via playlistBase embedding ----
+
+func TestPlaylistObject_playlistBase_FieldsUnmarshalCorrectly(t *testing.T) {
+	data := `{
+		"id": "pl99",
+		"name": "Embedded Playlist",
+		"collaborative": true,
+		"snapshot_id": "snap99",
+		"public": true,
+		"owner": {"id": "user1", "href": "https://api.spotify.com/v1/users/user1", "type": "user", "uri": "spotify:user:user1", "external_urls": {"spotify": "https://open.spotify.com/user/user1"}},
+		"external_urls": {"spotify": "https://open.spotify.com/playlist/pl99"},
+		"href": "https://api.spotify.com/v1/playlists/pl99",
+		"images": [],
+		"items": {"href": "", "total": 0, "limit": 20, "offset": 0, "items": []}
+	}`
+	var pl PlaylistObject
+	if err := json.Unmarshal([]byte(data), &pl); err != nil {
+		t.Fatalf("unexpected unmarshal error: %v", err)
+	}
+	if pl.ID != "pl99" {
+		t.Errorf("got ID %q, want pl99", pl.ID)
+	}
+	if pl.Name != "Embedded Playlist" {
+		t.Errorf("got Name %q, want 'Embedded Playlist'", pl.Name)
+	}
+	if !pl.Collaborative {
+		t.Error("expected Collaborative=true")
+	}
+	if pl.SnapshotID != "snap99" {
+		t.Errorf("got SnapshotID %q, want snap99", pl.SnapshotID)
+	}
+	if pl.Public == nil || !*pl.Public {
+		t.Error("expected Public=true")
+	}
+	if pl.Owner.ID != "user1" {
+		t.Errorf("got Owner.ID %q, want user1", pl.Owner.ID)
+	}
+}
+
+func TestSimplifiedPlaylistObject_playlistBase_FieldsUnmarshalCorrectly(t *testing.T) {
+	data := `{
+		"id": "spl1",
+		"name": "Simplified Playlist",
+		"collaborative": false,
+		"snapshot_id": "ssnap1",
+		"public": false,
+		"owner": {"id": "user2", "href": "https://api.spotify.com/v1/users/user2", "type": "user", "uri": "spotify:user:user2", "external_urls": {"spotify": ""}},
+		"external_urls": {"spotify": "https://open.spotify.com/playlist/spl1"},
+		"href": "https://api.spotify.com/v1/playlists/spl1",
+		"images": [],
+		"tracks": {"href": "https://api.spotify.com/v1/playlists/spl1/tracks", "total": 5}
+	}`
+	var pl SimplifiedPlaylistObject
+	if err := json.Unmarshal([]byte(data), &pl); err != nil {
+		t.Fatalf("unexpected unmarshal error: %v", err)
+	}
+	if pl.ID != "spl1" {
+		t.Errorf("got ID %q, want spl1", pl.ID)
+	}
+	if pl.Name != "Simplified Playlist" {
+		t.Errorf("got Name %q, want 'Simplified Playlist'", pl.Name)
+	}
+	if pl.Collaborative {
+		t.Error("expected Collaborative=false")
+	}
+	if pl.Tracks == nil || pl.Tracks.Total != 5 {
+		t.Errorf("expected Tracks.Total=5, got %v", pl.Tracks)
 	}
 }

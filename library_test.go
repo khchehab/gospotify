@@ -114,7 +114,7 @@ func TestCheckUserSavedItems_Success(t *testing.T) {
 	}
 }
 
-func TestConcatenateURIs(t *testing.T) {
+func TestAppendQueryParams_URIs(t *testing.T) {
 	tests := []struct {
 		name     string
 		endpoint string
@@ -137,7 +137,7 @@ func TestConcatenateURIs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := concatenateURIs(tt.endpoint, tt.uris)
+			got := appendQueryParams(tt.endpoint, requiredQueryParam{key: "uris", value: tt.uris})
 			if got != tt.want {
 				t.Errorf("got %q, want %q", got, tt.want)
 			}

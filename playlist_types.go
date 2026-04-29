@@ -2,7 +2,6 @@ package gospotify
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 type PlaylistItemsRefObject struct {
@@ -13,7 +12,7 @@ type PlaylistItemsRefObject struct {
 }
 
 type PlaylistUserObject struct {
-	// ExternalURLsObject is the known external URLs for this user.
+	// ExternalURLs is the known external URLs for this user.
 	ExternalURLs ExternalURLsObject `json:"external_urls"`
 	// Href is a link to the Web API endpoint for this user.
 	Href string `json:"href"`
@@ -31,7 +30,7 @@ type PlaylistOwnerObject struct {
 	DisplayName *string `json:"display_name"`
 }
 
-type SimplifiedPlaylistObject struct {
+type playlistBase struct {
 	// Collaborative is true if the owner allows other users to modify the playlist.
 	Collaborative bool `json:"collaborative"`
 	// Description is the playlist description. Only returned for modified, verified playlists, otherwise null.
@@ -52,6 +51,10 @@ type SimplifiedPlaylistObject struct {
 	Public *bool `json:"public"`
 	// SnapshotID is the version identifier for the current playlist.
 	SnapshotID string `json:"snapshot_id"`
+}
+
+type SimplifiedPlaylistObject struct {
+	playlistBase
 	// Items is a collection containing a link [Href] to the Web API endpoint where full details of the playlist's items can be retrieved,
 	// along with the total number of items in the playlist.
 	// A track object may be null. This can happen if a track is no longer available.
@@ -61,41 +64,14 @@ type SimplifiedPlaylistObject struct {
 	// A track object may be null. This can happen if a track is no longer available.
 	// Use [Items] instead.
 	Tracks *PlaylistItemsRefObject `json:"tracks"`
-	// Type is the object type: "playlist".
-	Type string `json:"type"`
-	// URI is the Spotify URI for the playlist.
-	URI string `json:"uri"`
 }
 
 type PlaylistObject struct {
-	// Collaborative is true if the owner allows other users to modify the playlist.
-	Collaborative bool `json:"collaborative"`
-	// Description is the playlist description. Only returned for modified, verified playlists, otherwise null.
-	Description *string `json:"description"`
-	// ExternalURLs is the known external URLs for this playlist.
-	ExternalURLs ExternalURLsObject `json:"external_urls"`
-	// Href is a link to the Web API endpoint providing full details of the playlist.
-	Href string `json:"href"`
-	// ID is the Spotify ID for the playlist
-	ID string `json:"id"`
-	// Images for the playlist.
-	Images []ImageObject `json:"images"`
-	// Name is the name of the playlist.
-	Name string `json:"name"`
-	// Owner is the user who owns the playlist
-	Owner PlaylistOwnerObject `json:"owner"`
-	// Public is the playlist's public/private status.
-	Public *bool `json:"public"`
-	// SnapshotID is the version identifier for the current playlist.
-	SnapshotID string `json:"snapshot_id"`
+	playlistBase
 	// Items is the items of the playlist.
 	Items Page[PlaylistTrackObject] `json:"items"`
 	// Deprecated: Tracks is the tracks of the playlist. Use [Items] instead.
 	Tracks *Page[PlaylistTrackObject] `json:"tracks"`
-	// Type is the object type: "playlist".
-	Type string `json:"type"`
-	// URI is the Spotify URI for the playlist.
-	URI string `json:"uri"`
 }
 
 type PlaylistTrackObject struct {
@@ -105,8 +81,9 @@ type PlaylistTrackObject struct {
 	AddedBy *PlaylistUserObject `json:"added_by"`
 	// Local is whether this track or episode is a local file or not.
 	Local bool `json:"is_local"`
-	// Item is the information about the track or episode. TODO update documentation
-	Track   *TrackObject
+	// Track is the currently playing track. Can be null.
+	Track *TrackObject
+	// Episode is the currently playing episode. Can be null.
 	Episode *EpisodeObject
 }
 
@@ -129,28 +106,15 @@ func (p *PlaylistTrackObject) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	var peek struct {
-		Type string `json:"type"`
-	}
-	if err := json.Unmarshal(raw.Item, &peek); err != nil {
+	t, e, err := unmarshalTrackOrEpisode(data)
+	if err != nil {
 		return err
 	}
 
-	switch peek.Type {
-	case "track":
-		var t TrackObject
-		if err := json.Unmarshal(raw.Item, &t); err != nil {
-			return fmt.Errorf("failed to unmarshal track: %w", err)
-		}
-		p.Track = &t
-	case "episode":
-		var e EpisodeObject
-		if err := json.Unmarshal(raw.Item, &e); err != nil {
-			return fmt.Errorf("failed to unmarshal episode: %w", err)
-		}
-		p.Episode = &e
-	default:
-		return fmt.Errorf("unknown item type: %s", peek.Type)
+	if t != nil {
+		p.Track = t
+	} else if e != nil {
+		p.Episode = e
 	}
 
 	return nil

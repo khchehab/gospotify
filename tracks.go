@@ -2,6 +2,7 @@ package gospotify
 
 import (
 	"context"
+	"fmt"
 )
 
 // GetTrack gets Spotify catalog information for a single track identified by its unique Spotify ID.
@@ -14,7 +15,7 @@ func (c *Client) GetTrack(ctx context.Context, id string, opts ...QueryOption) (
 	}
 	var track TrackObject
 	if err := c.get(ctx, "/tracks/"+id, &track, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetTrack %q: %w", id, err)
 	}
 	return &track, nil
 }
@@ -28,7 +29,7 @@ func (c *Client) GetTrack(ctx context.Context, id string, opts ...QueryOption) (
 func (c *Client) GetUserSavedTracks(ctx context.Context, opts ...QueryOption) (*Page[SavedTrackObject], error) {
 	var savedTracks Page[SavedTrackObject]
 	if err := c.get(ctx, "/me/tracks", &savedTracks, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetUserSavedTracks: %w", err)
 	}
 	return &savedTracks, nil
 }

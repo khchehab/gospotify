@@ -2,6 +2,7 @@ package gospotify
 
 import (
 	"context"
+	"fmt"
 )
 
 // GetAlbum gets Spotify catalog information for a single album.
@@ -14,7 +15,7 @@ func (c *Client) GetAlbum(ctx context.Context, id string, opts ...QueryOption) (
 	}
 	var album AlbumObject
 	if err := c.get(ctx, "/albums/"+id, &album, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetAlbum %q: %w", id, err)
 	}
 	return &album, nil
 }
@@ -31,7 +32,7 @@ func (c *Client) GetAlbumTracks(ctx context.Context, id string, opts ...QueryOpt
 	}
 	var albumTracks Page[SimplifiedTrackObject]
 	if err := c.get(ctx, "/albums/"+id+"/tracks", &albumTracks, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetAlbumTracks %q: %w", id, err)
 	}
 	return &albumTracks, nil
 }
@@ -45,7 +46,7 @@ func (c *Client) GetAlbumTracks(ctx context.Context, id string, opts ...QueryOpt
 func (c *Client) GetUserSavedAlbums(ctx context.Context, opts ...QueryOption) (*Page[SavedAlbumObject], error) {
 	var savedAlbums Page[SavedAlbumObject]
 	if err := c.get(ctx, "/me/albums", &savedAlbums, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetUserSavedAlbums: %w", err)
 	}
 	return &savedAlbums, nil
 }

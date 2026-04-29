@@ -2,6 +2,7 @@ package gospotify
 
 import (
 	"context"
+	"fmt"
 )
 
 // GetArtist gets Spotify catalog information for a single artist identified by their unique Spotify ID.
@@ -11,7 +12,7 @@ func (c *Client) GetArtist(ctx context.Context, id string) (*ArtistObject, error
 	}
 	var artist ArtistObject
 	if err := c.get(ctx, "/artists/"+id, &artist); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetArtist %q: %w", id, err)
 	}
 	return &artist, nil
 }
@@ -29,7 +30,7 @@ func (c *Client) GetArtistAlbums(ctx context.Context, id string, opts ...QueryOp
 	}
 	var artistAlbums Page[ArtistDiscographyAlbumObject]
 	if err := c.get(ctx, "/artists/"+id+"/albums", &artistAlbums, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetArtistAlbums %q: %w", id, err)
 	}
 	return &artistAlbums, nil
 }

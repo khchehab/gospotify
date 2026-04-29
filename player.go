@@ -2,7 +2,6 @@ package gospotify
 
 import (
 	"context"
-	"errors"
 	"fmt"
 )
 
@@ -15,10 +14,10 @@ import (
 func (c *Client) GetPlaybackState(ctx context.Context, opts ...QueryOption) (*PlaybackObject, error) {
 	var playback *PlaybackObject
 	if err := c.get(ctx, "/me/player", &playback, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetPlaybackState: %w", err)
 	}
 	if playback == nil {
-		return nil, errors.New("playback is not available or active")
+		return nil, ErrNoActivePlayback
 	}
 	return playback, nil
 }
@@ -27,7 +26,10 @@ func (c *Client) GetPlaybackState(ctx context.Context, opts ...QueryOption) (*Pl
 // This API only works for users who have Spotify Premium.
 // The order of execution is not guaranteed when you use this API with other Player API endpoints.
 func (c *Client) TransferPlayback(ctx context.Context, body TransferPlaybackRequest) error {
-	return c.put(ctx, "/me/player", body, "", nil)
+	if err := c.put(ctx, "/me/player", body, "", nil); err != nil {
+		return fmt.Errorf("TransferPlayback: %w", err)
+	}
+	return nil
 }
 
 // GetAvailableDevices gets information about a user’s available Spotify Connect devices.
@@ -35,7 +37,7 @@ func (c *Client) TransferPlayback(ctx context.Context, body TransferPlaybackRequ
 func (c *Client) GetAvailableDevices(ctx context.Context) ([]DeviceObject, error) {
 	var devices []DeviceObject
 	if err := c.get(ctx, "/me/player/devices", &devices); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetAvailableDevices: %w", err)
 	}
 	return devices, nil
 }
@@ -48,7 +50,7 @@ func (c *Client) GetAvailableDevices(ctx context.Context) ([]DeviceObject, error
 func (c *Client) GetCurrentPlayingTrack(ctx context.Context, opts ...QueryOption) (*PlaybackObject, error) {
 	var playback PlaybackObject
 	if err := c.get(ctx, "/me/player/currently-playing", &playback, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetCurrentPlayingTrack: %w", err)
 	}
 	return &playback, nil
 }
@@ -61,7 +63,10 @@ func (c *Client) GetCurrentPlayingTrack(ctx context.Context, opts ...QueryOption
 //   - [WithDeviceID]: The id of the device this command is targeting.
 //     If not supplied, the user's currently active device is the target.
 func (c *Client) StartResumePlayback(ctx context.Context, body StartResumePlaybackRequest, opts ...QueryOption) error {
-	return c.put(ctx, "/me/player/play", body, "", nil, opts...)
+	if err := c.put(ctx, "/me/player/play", body, "", nil, opts...); err != nil {
+		return fmt.Errorf("StartResumePlayback: %w", err)
+	}
+	return nil
 }
 
 // PausePlayback pauses playback on the user's account.
@@ -72,7 +77,10 @@ func (c *Client) StartResumePlayback(ctx context.Context, body StartResumePlayba
 //   - [WithDeviceID]: The id of the device this command is targeting.
 //     If not supplied, the user's currently active device is the target.
 func (c *Client) PausePlayback(ctx context.Context, opts ...QueryOption) error {
-	return c.put(ctx, "/me/player/pause", nil, "", nil, opts...)
+	if err := c.put(ctx, "/me/player/pause", nil, "", nil, opts...); err != nil {
+		return fmt.Errorf("PausePlayback: %w", err)
+	}
+	return nil
 }
 
 // SkipToNext skips to next track in the user’s queue.
@@ -83,7 +91,10 @@ func (c *Client) PausePlayback(ctx context.Context, opts ...QueryOption) error {
 //   - [WithDeviceID]: The id of the device this command is targeting.
 //     If not supplied, the user's currently active device is the target.
 func (c *Client) SkipToNext(ctx context.Context, opts ...QueryOption) error {
-	return c.post(ctx, "/me/player/next", nil, nil, opts...)
+	if err := c.post(ctx, "/me/player/next", nil, nil, opts...); err != nil {
+		return fmt.Errorf("SkipToNext: %w", err)
+	}
+	return nil
 }
 
 // SkipToPrevious skips to previous track in the user’s queue.
@@ -94,7 +105,10 @@ func (c *Client) SkipToNext(ctx context.Context, opts ...QueryOption) error {
 //   - [WithDeviceID]: The id of the device this command is targeting.
 //     If not supplied, the user's currently active device is the target.
 func (c *Client) SkipToPrevious(ctx context.Context, opts ...QueryOption) error {
-	return c.post(ctx, "/me/player/previous", nil, nil, opts...)
+	if err := c.post(ctx, "/me/player/previous", nil, nil, opts...); err != nil {
+		return fmt.Errorf("SkipToPrevious: %w", err)
+	}
+	return nil
 }
 
 // SeekToPosition seeks to the given position in the user’s currently playing track.
@@ -105,10 +119,13 @@ func (c *Client) SkipToPrevious(ctx context.Context, opts ...QueryOption) error 
 //   - [WithDeviceID]: The id of the device this command is targeting.
 //     If not supplied, the user's currently active device is the target.
 func (c *Client) SeekToPosition(ctx context.Context, positionMs int, opts ...QueryOption) error {
-	return c.put(ctx, appendQueryParams("/me/player/seek", requiredQueryParam{
+	if err := c.put(ctx, appendQueryParams("/me/player/seek", requiredQueryParam{
 		key:   "position_ms",
 		value: positionMs,
-	}), nil, "", nil, opts...)
+	}), nil, "", nil, opts...); err != nil {
+		return fmt.Errorf("SeekToPosition: %w", err)
+	}
+	return nil
 }
 
 // SetRepeatMode sets the repeat mode for the user's playback.
@@ -122,13 +139,16 @@ func (c *Client) SetRepeatMode(ctx context.Context, state RepeatState, opts ...Q
 	if err := requireNonEmpty("state", string(state)); err != nil {
 		return err
 	}
-	if state != RepeatOff && state != RepeatTrack && state != RepeatContext {
+	if !state.Valid() {
 		return fmt.Errorf("invalid state: %s", state)
 	}
-	return c.put(ctx, appendQueryParams("/me/player/repeat", requiredQueryParam{
+	if err := c.put(ctx, appendQueryParams("/me/player/repeat", requiredQueryParam{
 		key:   "state",
 		value: string(state),
-	}), nil, "", nil, opts...)
+	}), nil, "", nil, opts...); err != nil {
+		return fmt.Errorf("SetRepeatMode %q: %w", state, err)
+	}
+	return nil
 }
 
 // SetPlaybackVolume sets the volume for the user’s current playback device.
@@ -139,10 +159,13 @@ func (c *Client) SetRepeatMode(ctx context.Context, state RepeatState, opts ...Q
 //   - [WithDeviceID]: The id of the device this command is targeting.
 //     If not supplied, the user's currently active device is the target.
 func (c *Client) SetPlaybackVolume(ctx context.Context, volumePercent int, opts ...QueryOption) error {
-	return c.put(ctx, appendQueryParams("/me/player/volume", requiredQueryParam{
+	if err := c.put(ctx, appendQueryParams("/me/player/volume", requiredQueryParam{
 		key:   "volume_percent",
 		value: volumePercent,
-	}), nil, "", nil, opts...)
+	}), nil, "", nil, opts...); err != nil {
+		return fmt.Errorf("SetPlaybackVolume %v: %w", volumePercent, err)
+	}
+	return nil
 }
 
 // TogglePlaybackShuffle toggles shuffle on or off for user’s playback.
@@ -153,10 +176,13 @@ func (c *Client) SetPlaybackVolume(ctx context.Context, volumePercent int, opts 
 //   - [WithDeviceID]: The id of the device this command is targeting.
 //     If not supplied, the user's currently active device is the target.
 func (c *Client) TogglePlaybackShuffle(ctx context.Context, state bool, opts ...QueryOption) error {
-	return c.put(ctx, appendQueryParams("/me/player/shuffle", requiredQueryParam{
+	if err := c.put(ctx, appendQueryParams("/me/player/shuffle", requiredQueryParam{
 		key:   "state",
 		value: state,
-	}), nil, "", nil, opts...)
+	}), nil, "", nil, opts...); err != nil {
+		return fmt.Errorf("TogglePlaybackShuffle %t: %w", state, err)
+	}
+	return nil
 }
 
 // GetRecentlyPlayedTracks gets tracks from the current user's recently played tracks.
@@ -169,7 +195,7 @@ func (c *Client) TogglePlaybackShuffle(ctx context.Context, state bool, opts ...
 func (c *Client) GetRecentlyPlayedTracks(ctx context.Context, opts ...QueryOption) (*Cursor[PlayHistoryObject], error) {
 	var playHistory Cursor[PlayHistoryObject]
 	if err := c.get(ctx, "/me/player/recently-played", &playHistory, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetRecentlyPlayedTracks: %w", err)
 	}
 	return &playHistory, nil
 }
@@ -178,7 +204,7 @@ func (c *Client) GetRecentlyPlayedTracks(ctx context.Context, opts ...QueryOptio
 func (c *Client) GetUserQueue(ctx context.Context) (*UserQueue, error) {
 	var userQueue UserQueue
 	if err := c.get(ctx, "/me/player/queue", &userQueue); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetUserQueue: %w", err)
 	}
 	return &userQueue, nil
 }
@@ -191,8 +217,11 @@ func (c *Client) GetUserQueue(ctx context.Context) (*UserQueue, error) {
 //   - [WithDeviceID]: The id of the device this command is targeting.
 //     If not supplied, the user's currently active device is the target.
 func (c *Client) AddItemToPlaybackQueue(ctx context.Context, uri string, opts ...QueryOption) error {
-	return c.post(ctx, appendQueryParams("/me/player/queue", requiredQueryParam{
-		key:   uri,
+	if err := c.post(ctx, appendQueryParams("/me/player/queue", requiredQueryParam{
+		key:   "uri",
 		value: uri,
-	}), nil, nil, opts...)
+	}), nil, nil, opts...); err != nil {
+		return fmt.Errorf("AddItemToPlaybackQueue %q: %w", uri, err)
+	}
+	return nil
 }

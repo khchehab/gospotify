@@ -47,5 +47,5 @@ type SavedShowObject struct {
 	// AddedAt is the date and time the show was saved.
 	AddedAt string `json:"added_at"`
 	// Show is the information about the show.
-	Show Page[SimplifiedShowObject] `json:"show"`
+	Show SimplifiedShowObject `json:"show"`
 }

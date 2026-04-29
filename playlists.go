@@ -2,6 +2,7 @@ package gospotify
 
 import (
 	"context"
+	"fmt"
 )
 
 // GetPlaylist gets a playlist owned by a Spotify user.
@@ -16,7 +17,7 @@ func (c *Client) GetPlaylist(ctx context.Context, playlistID string, opts ...Que
 	}
 	var playlist PlaylistObject
 	if err := c.get(ctx, "/playlists/"+playlistID, &playlist, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetPlaylist %q: %w", playlistID, err)
 	}
 	return &playlist, nil
 }
@@ -27,7 +28,7 @@ func (c *Client) ChangePlaylistDetails(ctx context.Context, playlistID string, b
 		return err
 	}
 	if err := c.put(ctx, "/playlists/"+playlistID, body, "", nil); err != nil {
-		return err
+		return fmt.Errorf("ChangePlaylistDetails %q: %w", playlistID, err)
 	}
 	return nil
 }
@@ -46,7 +47,7 @@ func (c *Client) GetPlaylistItems(ctx context.Context, playlistID string, opts .
 	}
 	var playlistItems Page[PlaylistTrackObject]
 	if err := c.get(ctx, "/playlists/"+playlistID+"/items", &playlistItems, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetPlaylistItems %q: %w", playlistID, err)
 	}
 	return &playlistItems, nil
 }
@@ -65,7 +66,7 @@ func (c *Client) UpdatePlaylistItems(ctx context.Context, playlistID string, bod
 	}
 	var response playlistOperationResponse
 	if err := c.put(ctx, "/playlists/"+playlistID+"/items", body, "", &response, opts...); err != nil {
-		return "", err
+		return "", fmt.Errorf("UpdatePlaylistItems %q: %w", playlistID, err)
 	}
 	return response.SnapshotID, nil
 }
@@ -81,7 +82,7 @@ func (c *Client) AddItemsToPlaylist(ctx context.Context, playlistID string, body
 	}
 	var response playlistOperationResponse
 	if err := c.post(ctx, "/playlists/"+playlistID+"/items", body, &response, opts...); err != nil {
-		return "", err
+		return "", fmt.Errorf("AddItemsToPlaylist %q: %w", playlistID, err)
 	}
 	return response.SnapshotID, nil
 }
@@ -93,7 +94,7 @@ func (c *Client) RemovePlaylistItems(ctx context.Context, playlistID string, bod
 	}
 	var response playlistOperationResponse
 	if err := c.delete(ctx, "/playlists/"+playlistID+"/items", body, &response); err != nil {
-		return "", err
+		return "", fmt.Errorf("RemovePlaylistItems %q: %w", playlistID, err)
 	}
 	return response.SnapshotID, nil
 }
@@ -106,7 +107,7 @@ func (c *Client) RemovePlaylistItems(ctx context.Context, playlistID string, bod
 func (c *Client) GetCurrentUserPlaylists(ctx context.Context, opts ...QueryOption) (*Page[SimplifiedPlaylistObject], error) {
 	var playlist Page[SimplifiedPlaylistObject]
 	if err := c.get(ctx, "/me/playlists", &playlist, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetCurrentUserPlaylists: %w", err)
 	}
 	return &playlist, nil
 }
@@ -116,7 +117,7 @@ func (c *Client) GetCurrentUserPlaylists(ctx context.Context, opts ...QueryOptio
 func (c *Client) CreatePlaylist(ctx context.Context, body CreatePlaylistRequest) (*PlaylistObject, error) {
 	var playlist PlaylistObject
 	if err := c.post(ctx, "/me/playlists", body, &playlist); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("CreatePlaylist: %w", err)
 	}
 	return &playlist, nil
 }
@@ -128,7 +129,7 @@ func (c *Client) GetPlaylistCoverImage(ctx context.Context, playlistID string) (
 	}
 	var images []ImageObject
 	if err := c.get(ctx, "/playlists/"+playlistID+"/images", &images); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetPlaylistCoverImage %q: %w", playlistID, err)
 	}
 	return images, nil
 }
@@ -141,5 +142,8 @@ func (c *Client) AddCustomPlaylistCoverImage(ctx context.Context, playlistID str
 	if err := requireNonEmptyArray("image data", imageData); err != nil {
 		return err
 	}
-	return c.put(ctx, "/playlists/"+playlistID+"/images", imageData, "image/jpeg", nil)
+	if err := c.put(ctx, "/playlists/"+playlistID+"/images", imageData, "image/jpeg", nil); err != nil {
+		return fmt.Errorf("AddCustomPlaylistCoverImage %q: %w", playlistID, err)
+	}
+	return nil
 }

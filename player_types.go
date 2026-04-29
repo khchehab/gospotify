@@ -2,7 +2,6 @@ package gospotify
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 type ActionsObject struct {
@@ -43,7 +42,9 @@ type PlaybackObject struct {
 	ProgressMs *int `json:"progress_ms"`
 	// Playing is if something is currently playing, return true.
 	Playing bool `json:"is_playing"`
-	Track   *TrackObject
+	// Track is the currently playing track. Can be null.
+	Track *TrackObject
+	// Episode is the currently playing episode. Can be null.
 	Episode *EpisodeObject
 	// CurrentlyPlayingType is the object type of the currently playing item.
 	// Can be one of "track", "episode", "ad" or "unknown".
@@ -68,7 +69,7 @@ func (p *PlaybackObject) UnmarshalJSON(data []byte) error {
 		ProgressMs *int `json:"progress_ms"`
 		// Playing is if something is currently playing, return true.
 		Playing bool `json:"is_playing"`
-		// Item is the currently playing track or episode. Can be null. TODO update documentation
+		// Item is the currently playing track or episode. Can be null.
 		Item json.RawMessage `json:"item"`
 		// CurrentlyPlayingType is the object type of the currently playing item.
 		// Can be one of "track", "episode", "ad" or "unknown".
@@ -94,28 +95,15 @@ func (p *PlaybackObject) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
-	var peek struct {
-		Type string `json:"type"`
-	}
-	if err := json.Unmarshal(raw.Item, &peek); err != nil {
+	t, e, err := unmarshalTrackOrEpisode(raw.Item)
+	if err != nil {
 		return err
 	}
 
-	switch peek.Type {
-	case "track":
-		var t TrackObject
-		if err := json.Unmarshal(raw.Item, &t); err != nil {
-			return fmt.Errorf("failed to unmarshal track: %w", err)
-		}
-		p.Track = &t
-	case "episode":
-		var e EpisodeObject
-		if err := json.Unmarshal(raw.Item, &e); err != nil {
-			return fmt.Errorf("failed to unmarshal episode: %w", err)
-		}
-		p.Episode = &e
-	default:
-		return fmt.Errorf("unknown item type: %s", peek.Type)
+	if t != nil {
+		p.Track = t
+	} else if e != nil {
+		p.Episode = e
 	}
 
 	return nil
@@ -148,28 +136,15 @@ type QueueItemObject struct {
 }
 
 func (q *QueueItemObject) UnmarshalJSON(data []byte) error {
-	var peek struct {
-		Type string `json:"type"`
-	}
-	if err := json.Unmarshal(data, &peek); err != nil {
+	t, e, err := unmarshalTrackOrEpisode(data)
+	if err != nil {
 		return err
 	}
 
-	switch peek.Type {
-	case "track":
-		var t TrackObject
-		if err := json.Unmarshal(data, &t); err != nil {
-			return fmt.Errorf("failed to unmarshal track: %w", err)
-		}
-		q.Track = &t
-	case "episode":
-		var e EpisodeObject
-		if err := json.Unmarshal(data, &e); err != nil {
-			return fmt.Errorf("failed to unmarshal episode: %w", err)
-		}
-		q.Episode = &e
-	default:
-		return fmt.Errorf("unknown item type: %s", peek.Type)
+	if t != nil {
+		q.Track = t
+	} else if e != nil {
+		q.Episode = e
 	}
 
 	return nil

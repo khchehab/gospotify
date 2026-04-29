@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -21,6 +22,7 @@ func newTestClient(serverURL string) *Client {
 	return &Client{
 		baseURL:    serverURL,
 		httpClient: &http.Client{},
+		logger:     slog.New(slog.NewTextHandler(io.Discard, nil)),
 	}
 }
 
@@ -34,7 +36,7 @@ func TestGet_200_UnmarshalsResponseBody(t *testing.T) {
 
 	client := newTestClient(srv.URL)
 	var result testPayload
-	err := client.get(context.Background(), "", &result)
+	err := client.get(context.Background(), "/", &result)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -55,7 +57,7 @@ func TestGet_Non200_ReturnsErrorResponse(t *testing.T) {
 
 	client := newTestClient(srv.URL)
 	var result testPayload
-	err := client.get(context.Background(), "", &result)
+	err := client.get(context.Background(), "/", &result)
 
 	if err == nil {
 		t.Fatal("expected non-nil error")
@@ -88,7 +90,7 @@ func TestGet_Non200_InvalidJSON_ReturnsUnmarshalError(t *testing.T) {
 
 	client := newTestClient(srv.URL)
 	var result testPayload
-	err := client.get(context.Background(), "", &result)
+	err := client.get(context.Background(), "/", &result)
 
 	if err == nil {
 		t.Fatal("expected non-nil error")
@@ -116,7 +118,7 @@ func TestGet_200_InvalidJSON_ReturnsUnmarshalError(t *testing.T) {
 
 	client := newTestClient(srv.URL)
 	var result testPayload
-	err := client.get(context.Background(), "", &result)
+	err := client.get(context.Background(), "/", &result)
 
 	if err == nil {
 		t.Fatal("expected non-nil error")
@@ -138,7 +140,7 @@ func TestGet_TransportError_ReturnsError(t *testing.T) {
 
 	client := newTestClient(closedURL)
 	var result testPayload
-	err := client.get(context.Background(), "", &result)
+	err := client.get(context.Background(), "/", &result)
 
 	if err == nil {
 		t.Fatal("expected non-nil error")
@@ -164,7 +166,7 @@ func TestGet_CancelledContext_AlreadyCancelled(t *testing.T) {
 
 	client := newTestClient(srv.URL)
 	var result testPayload
-	err := client.get(ctx, "", &result)
+	err := client.get(ctx, "/", &result)
 
 	if err == nil {
 		t.Fatal("expected non-nil error")
@@ -287,7 +289,7 @@ func TestPost_200_UnmarshalsResponseBody(t *testing.T) {
 
 	client := newTestClient(srv.URL)
 	var result testPayload
-	err := client.post(context.Background(), "", testPayload{Name: "input"}, &result)
+	err := client.post(context.Background(), "/", testPayload{Name: "input"}, &result)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -306,7 +308,7 @@ func TestPost_NilBody_NoContentTypeHeader(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv.URL)
-	err := client.post(context.Background(), "", nil, nil)
+	err := client.post(context.Background(), "/", nil, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -321,7 +323,7 @@ func TestPost_Non200_ReturnsErrorResponse(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv.URL)
-	err := client.post(context.Background(), "", nil, nil)
+	err := client.post(context.Background(), "/", nil, nil)
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -342,7 +344,7 @@ func TestPost_NilResponse_NoUnmarshal(t *testing.T) {
 
 	client := newTestClient(srv.URL)
 	// passing nil response means we don't try to unmarshal — should not panic or error
-	err := client.post(context.Background(), "", nil, nil)
+	err := client.post(context.Background(), "/", nil, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -367,7 +369,7 @@ func TestPut_200_WithJSONBody(t *testing.T) {
 
 	client := newTestClient(srv.URL)
 	var result testPayload
-	err := client.put(context.Background(), "", testPayload{Name: "input"}, "", &result)
+	err := client.put(context.Background(), "/", testPayload{Name: "input"}, "", &result)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -392,7 +394,7 @@ func TestPut_WithRawBytesBody_CustomContentType(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv.URL)
-	err := client.put(context.Background(), "", []byte("rawdata"), "image/jpeg", nil)
+	err := client.put(context.Background(), "/", []byte("rawdata"), "image/jpeg", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -410,7 +412,7 @@ func TestPut_Non200_ReturnsErrorResponse(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv.URL)
-	err := client.put(context.Background(), "", nil, "", nil)
+	err := client.put(context.Background(), "/", nil, "", nil)
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -433,7 +435,7 @@ func TestPut_NilBody_NoContentTypeSet(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv.URL)
-	err := client.put(context.Background(), "", nil, "", nil)
+	err := client.put(context.Background(), "/", nil, "", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -454,7 +456,7 @@ func TestDelete_200_UnmarshalsResponseBody(t *testing.T) {
 
 	client := newTestClient(srv.URL)
 	var result testPayload
-	err := client.delete(context.Background(), "", nil, &result)
+	err := client.delete(context.Background(), "/", nil, &result)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -473,7 +475,7 @@ func TestDelete_WithBody_SetsContentTypeJSON(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv.URL)
-	err := client.delete(context.Background(), "", testPayload{Name: "item"}, nil)
+	err := client.delete(context.Background(), "/", testPayload{Name: "item"}, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -488,7 +490,7 @@ func TestDelete_Non200_ReturnsErrorResponse(t *testing.T) {
 	defer srv.Close()
 
 	client := newTestClient(srv.URL)
-	err := client.delete(context.Background(), "", nil, nil)
+	err := client.delete(context.Background(), "/", nil, nil)
 	if err == nil {
 		t.Fatal("expected error")
 	}
@@ -517,7 +519,7 @@ func TestGet_CancelledContext_MidFlight(t *testing.T) {
 
 	client := newTestClient(srv.URL)
 	var result testPayload
-	err := client.get(ctx, "", &result)
+	err := client.get(ctx, "/", &result)
 
 	if err == nil {
 		t.Fatal("expected non-nil error")
@@ -527,5 +529,166 @@ func TestGet_CancelledContext_MidFlight(t *testing.T) {
 	}
 	if result.Name != "" {
 		t.Errorf("result should be zero-value, got Name=%q", result.Name)
+	}
+}
+
+// ---- prepareBody ----
+
+func TestPrepareBody_NilBody_ReturnsNilReaderAndEmptyContentType(t *testing.T) {
+	reader, ct, err := prepareBody(nil, "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if reader != nil {
+		t.Error("expected nil reader for nil body")
+	}
+	if ct != "" {
+		t.Errorf("expected empty content type, got %q", ct)
+	}
+}
+
+func TestPrepareBody_ByteSlice_ReturnsRawBytesAndDefaultContentType(t *testing.T) {
+	data := []byte("rawbytes")
+	reader, ct, err := prepareBody(data, "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if reader == nil {
+		t.Fatal("expected non-nil reader")
+	}
+	if ct != "application/json" {
+		t.Errorf("got content type %q, want application/json", ct)
+	}
+	b, _ := io.ReadAll(reader)
+	if string(b) != "rawbytes" {
+		t.Errorf("got body %q, want rawbytes", string(b))
+	}
+}
+
+func TestPrepareBody_ByteSlice_CustomContentTypePreserved(t *testing.T) {
+	data := []byte("imagedata")
+	_, ct, err := prepareBody(data, "image/jpeg")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if ct != "image/jpeg" {
+		t.Errorf("got content type %q, want image/jpeg", ct)
+	}
+}
+
+func TestPrepareBody_Struct_MarshalledToJSON(t *testing.T) {
+	payload := testPayload{Name: "test"}
+	reader, ct, err := prepareBody(payload, "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if reader == nil {
+		t.Fatal("expected non-nil reader")
+	}
+	if ct != "application/json" {
+		t.Errorf("got content type %q, want application/json", ct)
+	}
+	b, _ := io.ReadAll(reader)
+	var got testPayload
+	if err := json.Unmarshal(b, &got); err != nil {
+		t.Fatalf("response not valid JSON: %v", err)
+	}
+	if got.Name != "test" {
+		t.Errorf("got Name %q, want test", got.Name)
+	}
+}
+
+func TestPrepareBody_Struct_CustomContentTypeOverridesDefault(t *testing.T) {
+	payload := testPayload{Name: "x"}
+	_, ct, err := prepareBody(payload, "application/vnd.api+json")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if ct != "application/vnd.api+json" {
+		t.Errorf("got content type %q, want application/vnd.api+json", ct)
+	}
+}
+
+func TestPrepareBody_UnmarshalableValue_ReturnsError(t *testing.T) {
+	// channels cannot be marshalled to JSON
+	_, _, err := prepareBody(make(chan int), "")
+	if err == nil {
+		t.Fatal("expected error for unmarshallable body")
+	}
+}
+
+// ---- prepareRequest ----
+
+func TestPrepareRequest_EmptyEndpoint_ReturnsError(t *testing.T) {
+	client := newTestClient("http://unused")
+	req, err := client.prepareRequest(context.Background(), "GET", "", nil, "")
+	if err == nil {
+		t.Fatal("expected error for empty endpoint")
+	}
+	if err.Error() != "no endpoint provided" {
+		t.Errorf("got %q, want 'no endpoint provided'", err.Error())
+	}
+	if req != nil {
+		t.Error("expected nil request on error")
+	}
+}
+
+func TestPrepareRequest_ValidInputs_CorrectMethod(t *testing.T) {
+	client := newTestClient("http://example.com")
+	req, err := client.prepareRequest(context.Background(), "GET", "/tracks/1", nil, "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if req.Method != "GET" {
+		t.Errorf("got method %q, want GET", req.Method)
+	}
+}
+
+func TestPrepareRequest_ValidInputs_CorrectURL(t *testing.T) {
+	client := newTestClient("http://example.com")
+	req, err := client.prepareRequest(context.Background(), "GET", "/tracks/1", nil, "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	wantURL := "http://example.com/tracks/1"
+	if req.URL.String() != wantURL {
+		t.Errorf("got URL %q, want %q", req.URL.String(), wantURL)
+	}
+}
+
+func TestPrepareRequest_WithBody_SetsContentTypeHeader(t *testing.T) {
+	client := newTestClient("http://example.com")
+	req, err := client.prepareRequest(context.Background(), "POST", "/items", testPayload{Name: "x"}, "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if req.Header.Get("Content-Type") != "application/json" {
+		t.Errorf("got Content-Type %q, want application/json", req.Header.Get("Content-Type"))
+	}
+}
+
+func TestPrepareRequest_NilBody_NoContentTypeHeader(t *testing.T) {
+	client := newTestClient("http://example.com")
+	req, err := client.prepareRequest(context.Background(), "GET", "/items", nil, "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if req.Header.Get("Content-Type") != "" {
+		t.Errorf("expected no Content-Type header, got %q", req.Header.Get("Content-Type"))
+	}
+}
+
+func TestPrepareRequest_WithQueryOptions_URLHasQueryParams(t *testing.T) {
+	client := newTestClient("http://example.com")
+	req, err := client.prepareRequest(context.Background(), "GET", "/items", nil, "", WithLimit(10), WithMarket("US"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	q := req.URL.Query()
+	if q.Get("limit") != "10" {
+		t.Errorf("limit: got %q, want 10", q.Get("limit"))
+	}
+	if q.Get("market") != "US" {
+		t.Errorf("market: got %q, want US", q.Get("market"))
 	}
 }

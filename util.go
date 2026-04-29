@@ -74,7 +74,12 @@ type requiredQueryParam struct {
 }
 
 // String is the string representation of a required query parameter.
+// If the key field is empty, this function will panic.
 func (q requiredQueryParam) String() string {
+	if q.key == "" {
+		panic("required key query parameter is empty")
+	}
+
 	var value string
 	switch t := q.value.(type) {
 	case string:

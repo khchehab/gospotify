@@ -2,6 +2,7 @@ package gospotify
 
 import (
 	"context"
+	"fmt"
 )
 
 // GetShow gets Spotify catalog information for a single show identified by its unique Spotify ID.
@@ -14,7 +15,7 @@ func (c *Client) GetShow(ctx context.Context, id string, opts ...QueryOption) (*
 	}
 	var show ShowObject
 	if err := c.get(ctx, "/shows/"+id, &show, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetShow %q: %w", id, err)
 	}
 	return &show, nil
 }
@@ -31,7 +32,7 @@ func (c *Client) GetShowEpisodes(ctx context.Context, id string, opts ...QueryOp
 	}
 	var showEpisodes Page[SimplifiedEpisodeObject]
 	if err := c.get(ctx, "/shows/"+id+"/episodes", &showEpisodes, opts...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetShowEpisodes %q: %w", id, err)
 	}
 	return &showEpisodes, nil
 }
@@ -43,8 +44,8 @@ func (c *Client) GetShowEpisodes(ctx context.Context, id string, opts ...QueryOp
 // * [WithOffset]: The index of the first item to return.
 func (c *Client) GetUserSavedShows(ctx context.Context, opts ...QueryOption) (*Page[SavedShowObject], error) {
 	var savedShows Page[SavedShowObject]
-	if err := c.get(ctx, "/me/shows/", &savedShows, opts...); err != nil {
-		return nil, err
+	if err := c.get(ctx, "/me/shows", &savedShows, opts...); err != nil {
+		return nil, fmt.Errorf("GetUserSavedShows: %w", err)
 	}
 	return &savedShows, nil
 }
