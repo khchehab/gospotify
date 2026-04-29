@@ -20,7 +20,10 @@ func TestRandomString_Length(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := RandomString(tc.n)
+			got, err := RandomString(tc.n)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
 			if len(got) != tc.n {
 				t.Errorf("got len %d, want %d", len(got), tc.n)
 			}
@@ -29,7 +32,10 @@ func TestRandomString_Length(t *testing.T) {
 }
 
 func TestRandomString_AllCharsInAllowedSet(t *testing.T) {
-	result := RandomString(10_000)
+	result, err := RandomString(10_000)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	for i, ch := range result {
 		if !strings.ContainsRune(allowedChars, ch) {
 			t.Errorf("char %q at index %d is not in allowedChars", ch, i)
@@ -39,7 +45,10 @@ func TestRandomString_AllCharsInAllowedSet(t *testing.T) {
 }
 
 func TestRandomString_NoDisallowedChars(t *testing.T) {
-	result := RandomString(1_000)
+	result, err := RandomString(1_000)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	disallowed := "!@#$%^&*()_+-=[]{}|;':\",./<>? \t\n\r"
 	for _, ch := range disallowed {
 		if strings.ContainsRune(result, ch) {
@@ -48,19 +57,23 @@ func TestRandomString_NoDisallowedChars(t *testing.T) {
 	}
 }
 
-func TestRandomString_NoPanicOnIndexBounds(t *testing.T) {
-	// 100k iterations stress-tests that r.IntN(62) never returns >= 62.
-	defer func() {
-		if r := recover(); r != nil {
-			t.Errorf("RandomString panicked: %v", r)
-		}
-	}()
-	RandomString(100_000)
+func TestRandomString_NoIndexOutOfBounds(t *testing.T) {
+	// 100k characters stress-tests that the index into allowedChars never goes out of bounds.
+	_, err := RandomString(100_000)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }
 
 func TestRandomString_Uniqueness_TwoCalls(t *testing.T) {
-	a := RandomString(32)
-	b := RandomString(32)
+	a, err := RandomString(32)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	b, err := RandomString(32)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if a == b {
 		t.Errorf("two successive RandomString(32) calls returned the same value: %q", a)
 	}
@@ -70,7 +83,10 @@ func TestRandomString_Uniqueness_Batch(t *testing.T) {
 	const n = 1000
 	seen := make(map[string]struct{}, n)
 	for i := 0; i < n; i++ {
-		s := RandomString(16)
+		s, err := RandomString(16)
+		if err != nil {
+			t.Fatalf("unexpected error at iteration %d: %v", i, err)
+		}
 		if _, exists := seen[s]; exists {
 			t.Errorf("duplicate string produced at iteration %d: %q", i, s)
 			return
@@ -80,7 +96,10 @@ func TestRandomString_Uniqueness_Batch(t *testing.T) {
 }
 
 func TestRandomString_ValidUTF8(t *testing.T) {
-	result := RandomString(100)
+	result, err := RandomString(100)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if !utf8.ValidString(result) {
 		t.Error("RandomString result is not valid UTF-8")
 	}

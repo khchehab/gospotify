@@ -131,7 +131,11 @@ type exchangeFunc func(ctx context.Context, code string) (*oauth2.Token, error)
 // authorizationCode performs the authorization code flow and returns the initial token.
 // This function is used internally by both [AuthorizationCode] and [AuthorizationCodeWithPKCE].
 func (a *Authenticator) authorizationCode(oauthConfig *oauth2.Config, authCodeURL authCodeURLFunc, exchange exchangeFunc) (oauth2.TokenSource, error) {
-	state := RandomString(authStateLength)
+	state, err := RandomString(authStateLength)
+	if err != nil {
+		return nil, err
+	}
+
 	authCh := make(chan authResult, 1)
 
 	server := a.startLocalAuthServer(authCh, state)

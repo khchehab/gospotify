@@ -1,29 +1,33 @@
 package gospotify
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand/v2"
+	"math/big"
 	"net/url"
 	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // allowedChars is the set of characters allowed in a random string.
 const allowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-// r is a random number generator.
-var r = rand.New(rand.NewPCG(uint64(time.Now().UnixMicro()), uint64(time.Now().UnixMicro())))
-
 // RandomString returns a random string of the given length.
-func RandomString(len int) string {
-	b := make([]byte, len)
+func RandomString(length int) (string, error) {
+	b := make([]byte, length)
+
+	maxN := big.NewInt(int64(len(allowedChars)))
 	for i := range b {
-		b[i] = allowedChars[r.IntN(62)]
+		n, err := rand.Int(rand.Reader, maxN)
+		if err != nil {
+			return "", err
+		}
+		b[i] = allowedChars[n.Int64()]
 	}
-	return string(b)
+
+	return string(b), nil
 }
 
 // browserCommand returns the command and arguments needed to open a URL on the given OS.
