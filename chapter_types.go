@@ -1,5 +1,6 @@
 package gospotify
 
+// SimplifiedChapterObject is a reduced representation of an audiobook chapter, returned when chapters appear nested inside other objects (e.g. inside an audiobook).
 type SimplifiedChapterObject struct {
 	// Deprecated: AudioPreviewURL is a URL to a 30-second preview (MP3 format) of the chapter. null if not available.
 	AudioPreviewURL *string `json:"audio_preview_url"`
@@ -44,7 +45,9 @@ type SimplifiedChapterObject struct {
 	Restrictions *RestrictionsObject `json:"restrictions"`
 }
 
+// ChapterObject is the full representation of a Spotify audiobook chapter, including the audiobook it belongs to.
 type ChapterObject struct {
 	SimplifiedChapterObject
+	// Audiobook is the audiobook for which the chapter belongs.
 	Audiobook SimplifiedAudiobookObject `json:"audiobook"`
 }

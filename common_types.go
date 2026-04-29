@@ -36,6 +36,7 @@ func (t ItemType) Valid() bool {
 	return ok
 }
 
+// Page is a generic paginated response returned by Spotify list endpoints.
 type Page[T any] struct {
 	// Href is a link to the Web API endpoint returning the full result of the request.
 	Href string `json:"href"`
@@ -53,6 +54,7 @@ type Page[T any] struct {
 	Items []T `json:"items"`
 }
 
+// Cursor is a generic cursor-based paginated response used by Spotify endpoints that support cursor pagination.
 type Cursor[T any] struct {
 	// Href is a link to the Web API endpoint returning the full result of the request.
 	Href string `json:"href"`
@@ -68,6 +70,7 @@ type Cursor[T any] struct {
 	Items []T `json:"items"`
 }
 
+// CursorsObject holds the before and after cursor values used for cursor-based pagination.
 type CursorsObject struct {
 	// After is the cursor to use as a key to find the next page of items.
 	After *string `json:"after"`
@@ -75,6 +78,7 @@ type CursorsObject struct {
 	Before *string `json:"before"`
 }
 
+// ExplicitContent holds the user's explicit content filter settings.
 type ExplicitContent struct {
 	// FilterEnabled when true, indicates that explicit content should not be played.
 	FilterEnabled bool `json:"filter_enabled"`
@@ -82,11 +86,13 @@ type ExplicitContent struct {
 	FilterLocked bool `json:"filter_locked"`
 }
 
+// ExternalURLsObject holds external URLs associated with a Spotify object.
 type ExternalURLsObject struct {
 	// Spotify is the Spotify URL for the object.
 	Spotify string `json:"spotify"`
 }
 
+// FollowersObject holds follower information for a Spotify artist or user.
 type FollowersObject struct {
 	// Href will always be set to null, as the Web API does not support it at the moment.
 	Href *string `json:"href"`
@@ -94,6 +100,7 @@ type FollowersObject struct {
 	Total int `json:"total"`
 }
 
+// ImageObject represents a Spotify cover image in a specific size.
 type ImageObject struct {
 	// URL is the source URL of the image.
 	URL string `json:"url"`
@@ -103,11 +110,13 @@ type ImageObject struct {
 	Width *int `json:"width"`
 }
 
+// RestrictionsObject describes why content is restricted from playback.
 type RestrictionsObject struct {
 	// Reason is the reason for the restriction. Supported values: "market", "product", or "explicit".
 	Reason string `json:"reason"`
 }
 
+// ExternalIDsObject holds known external identifiers for a track.
 type ExternalIDsObject struct {
 	// ISRC is the International Standard Recording Code.
 	ISRC string `json:"isrc"`
@@ -117,6 +126,7 @@ type ExternalIDsObject struct {
 	UPC string `json:"upc"`
 }
 
+// CopyrightObject holds a copyright statement for an album, audiobook, or show.
 type CopyrightObject struct {
 	// Text is the copyright text for this content.
 	Text string `json:"text"`
@@ -124,16 +134,19 @@ type CopyrightObject struct {
 	Type string `json:"type"`
 }
 
+// AuthorObject holds the name of an audiobook author.
 type AuthorObject struct {
 	// Name is the name of the author.
 	Name string `json:"name"`
 }
 
+// NarratorObject holds the name of an audiobook narrator.
 type NarratorObject struct {
 	// Name is the name of the Narrator.
 	Name string `json:"name"`
 }
 
+// ContextObject describes the playback context (e.g. an album, artist, or playlist) for the currently playing item.
 type ContextObject struct {
 	// Type is the object type, e.g. "artist", "playlist", "album", "show".
 	Type string `json:"type"`
@@ -145,6 +158,7 @@ type ContextObject struct {
 	URI string `json:"uri"`
 }
 
+// ResumePointObject holds the user's most recent listening position within an episode or chapter.
 type ResumePointObject struct {
 	// FullyPlayed is whether the episode has been fully played by the user.
 	FullyPlayed bool `json:"fully_played"`

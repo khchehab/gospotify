@@ -1,5 +1,6 @@
 package gospotify
 
+// SimplifiedShowObject is a reduced representation of a podcast show, returned when shows appear nested inside other objects (e.g. inside an episode).
 type SimplifiedShowObject struct {
 	// Deprecated: AvailableMarkets is a list of the countries in which the show can be played, identified by their ISO 3166-1 alpha-2 code.
 	AvailableMarkets []string `json:"available_markets"`
@@ -37,12 +38,14 @@ type SimplifiedShowObject struct {
 	TotalEpisodes int `json:"total_episodes"`
 }
 
+// ShowObject is the full representation of a Spotify podcast show, including its paginated episodes.
 type ShowObject struct {
 	SimplifiedShowObject
 	// Episodes is the episodes of the show.
 	Episodes Page[SimplifiedEpisodeObject] `json:"episodes"`
 }
 
+// SavedShowObject is a show saved to the current user's library, with the date it was added.
 type SavedShowObject struct {
 	// AddedAt is the date and time the show was saved.
 	AddedAt string `json:"added_at"`

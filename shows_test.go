@@ -117,7 +117,7 @@ func TestGetShowEpisodes_Success(t *testing.T) {
 
 func TestGetUserSavedShows_Success(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/me/shows/" {
+		if r.URL.Path != "/me/shows" {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
 		w.Header().Set("Content-Type", "application/json")

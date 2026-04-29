@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 )
 
+// ActionsObject describes which playback control actions are available in the current playback context.
+// Each field is true when the corresponding action is currently disallowed.
 type ActionsObject struct {
 	// InterruptingPlayback is for interrupting playback. Optional field.
 	InterruptingPlayback bool `json:"interrupting_playback,omitempty"`
@@ -27,6 +29,8 @@ type ActionsObject struct {
 	TransferringPlayback bool `json:"transferring_playback,omitempty"`
 }
 
+// PlaybackObject represents the current playback state of a user's Spotify account.
+// Exactly one of Track or Episode will be non-nil when something is playing, depending on CurrentlyPlayingType.
 type PlaybackObject struct {
 	// Device is the device that is currently active.
 	Device DeviceObject `json:"device"`
@@ -53,6 +57,9 @@ type PlaybackObject struct {
 	Actions ActionsObject `json:"actions"`
 }
 
+// UnmarshalJSON implements custom JSON unmarshalling for PlaybackObject.
+// The "item" field from the Spotify API is a polymorphic object (track or episode),
+// so this method peeks at its "type" field to decide which struct to populate.
 func (p *PlaybackObject) UnmarshalJSON(data []byte) error {
 	var raw struct {
 		// Device is the device that is currently active.
@@ -109,6 +116,7 @@ func (p *PlaybackObject) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// DeviceObject represents a Spotify Connect device available to the user.
 type DeviceObject struct {
 	// ID is the device ID. This ID is unique and persistent to some extent.
 	// However, this is not guaranteed, and any cached "device_id" should periodically be cleared out and refetched as necessary.
@@ -130,11 +138,18 @@ type DeviceObject struct {
 	SupportsVolume bool `json:"supports_volume"`
 }
 
+// QueueItemObject is a single item in the user's playback queue.
+// Exactly one of Track or Episode will be non-nil, depending on the item type.
 type QueueItemObject struct {
-	Track   *TrackObject
+	// Track is the track in the queue. Can be null if the item is an episode.
+	Track *TrackObject
+	// Episode is the episode in the queue. Can be null if the item is a track.
 	Episode *EpisodeObject
 }
 
+// UnmarshalJSON implements custom JSON unmarshalling for QueueItemObject.
+// The Spotify API returns queue items as a polymorphic object (track or episode),
+// so this method peeks at the "type" field to decide which struct to populate.
 func (q *QueueItemObject) UnmarshalJSON(data []byte) error {
 	t, e, err := unmarshalTrackOrEpisode(data)
 	if err != nil {
@@ -150,6 +165,7 @@ func (q *QueueItemObject) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// UserQueue represents the user's current playback queue.
 type UserQueue struct {
 	// CurrentlyPlaying is the currently playing track or episode. Can be null.
 	CurrentlyPlaying *QueueItemObject `json:"currently_playing"`
@@ -157,6 +173,7 @@ type UserQueue struct {
 	Queue []QueueItemObject `json:"queue"`
 }
 
+// PlayHistoryObject represents a track from the user's recently played history.
 type PlayHistoryObject struct {
 	// Track is the track the user listened to.
 	Track TrackObject `json:"track"`
@@ -166,6 +183,7 @@ type PlayHistoryObject struct {
 	Context ContextObject `json:"context"`
 }
 
+// TransferPlaybackRequest is the request body for [Client.TransferPlayback].
 type TransferPlaybackRequest struct {
 	// DeviceIDs is an array containing the ID of the device on which playback should be started/transferred.
 	// Note: Although an array is accepted, only a single device_id is currently supported. Supplying more than one will return 400 Bad Request.
@@ -174,6 +192,7 @@ type TransferPlaybackRequest struct {
 	Play bool `json:"play"`
 }
 
+// StartResumePlaybackRequest is the request body for [Client.StartResumePlayback].
 type StartResumePlaybackRequest struct {
 	// ContextURI is a Spotify URI of the context to play. Valid contexts are albums, artists & playlists.
 	ContextURI *string `json:"context_uri,omitempty"`

@@ -6,7 +6,7 @@ import (
 )
 
 // GetPlaybackState gets information about the user’s current playback state, including track or episode, progress, and active device.
-// If the playback is not available or not active, the playback object returned will be nil, along with a nil error.
+// If the playback is not available or not active, [ErrNoActivePlayback] is returned.
 //
 // QueryOptions that can be used are:
 //   - [WithMarket]: An ISO 3166-1 alpha-2 country code.

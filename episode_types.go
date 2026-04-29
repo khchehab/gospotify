@@ -1,5 +1,6 @@
 package gospotify
 
+// SimplifiedEpisodeObject is a reduced representation of a podcast episode, returned when episodes appear nested inside other objects (e.g. inside a show).
 type SimplifiedEpisodeObject struct {
 	// Deprecated: AudioPreviewURL is a URL to a 30-second preview (MP3 format) of the episode. null if not available.
 	AudioPreviewURL *string `json:"audio_preview_url"`
@@ -44,12 +45,14 @@ type SimplifiedEpisodeObject struct {
 	Restrictions *RestrictionsObject `json:"restrictions"`
 }
 
+// EpisodeObject is the full representation of a Spotify podcast episode, including the show it belongs to.
 type EpisodeObject struct {
 	SimplifiedEpisodeObject
 	// Show is the show on which the episode belongs.
 	Show SimplifiedShowObject `json:"show"`
 }
 
+// SavedEpisodeObject is an episode saved to the current user's library, with the date it was added.
 type SavedEpisodeObject struct {
 	// AddedAt is the date and time the episode was saved.
 	AddedAt string `json:"added_at"`

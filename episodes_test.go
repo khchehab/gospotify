@@ -85,7 +85,7 @@ func TestGetEpisode_APIError(t *testing.T) {
 
 func TestGetUserSavedEpisodes_Success(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/me/episodes/" {
+		if r.URL.Path != "/me/episodes" {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
 		w.Header().Set("Content-Type", "application/json")

@@ -1,5 +1,6 @@
 package gospotify
 
+// TrackObject is the full representation of a Spotify track, including album context, external IDs, and popularity.
 type TrackObject struct {
 	SimplifiedTrackObject
 	// Album is the album on which the track appears.
@@ -11,6 +12,7 @@ type TrackObject struct {
 	Popularity int `json:"popularity"`
 }
 
+// SimplifiedTrackObject is a reduced representation of a track, returned when tracks appear nested inside other objects (e.g. inside an album).
 type SimplifiedTrackObject struct {
 	// Artists is the artists who performed the track.
 	// Each artist object includes a link in href to more detailed information about the artist.
@@ -49,6 +51,7 @@ type SimplifiedTrackObject struct {
 	Local bool `json:"is_local"`
 }
 
+// SavedTrackObject is a track saved to the current user's library, with the date it was added.
 type SavedTrackObject struct {
 	// AddedAt is the date and time the track was saved.
 	AddedAt string `json:"added_at"`

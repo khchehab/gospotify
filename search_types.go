@@ -1,5 +1,7 @@
 package gospotify
 
+// SearchResult holds the paginated results for each item type returned by a search query.
+// Fields for item types not included in the search request will be zero-valued.
 type SearchResult struct {
 	// Tracks is a page of the track result.
 	Tracks Page[TrackObject] `json:"tracks"`

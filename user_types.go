@@ -1,5 +1,6 @@
 package gospotify
 
+// CurrentUserProfile contains detailed profile information about the currently authenticated user.
 type CurrentUserProfile struct {
 	// Deprecated: Country is the country of the user, as set in the user's account profile.
 	Country *string `json:"country"`

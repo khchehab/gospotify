@@ -1,5 +1,6 @@
 package gospotify
 
+// SimplifiedArtistObject is a reduced representation of an artist, returned when artists appear nested inside other objects (e.g. inside an album or track).
 type SimplifiedArtistObject struct {
 	// ExternalURLs is the known external URLs for this artist.
 	ExternalURLs ExternalURLsObject `json:"external_urls"`
@@ -15,6 +16,7 @@ type SimplifiedArtistObject struct {
 	URI string `json:"uri"`
 }
 
+// ArtistObject is the full representation of a Spotify artist, including follower count, genres, images, and popularity.
 type ArtistObject struct {
 	// ExternalURLs is the known external URLs for this artist.
 	ExternalURLs ExternalURLsObject `json:"external_urls"`

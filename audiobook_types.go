@@ -1,5 +1,6 @@
 package gospotify
 
+// SimplifiedAudiobookObject is a reduced representation of an audiobook, returned when audiobooks appear nested inside other objects (e.g. inside a chapter).
 type SimplifiedAudiobookObject struct {
 	// Authors is the author(s) of the audiobook.
 	Authors []AuthorObject `json:"authors"`
@@ -41,6 +42,7 @@ type SimplifiedAudiobookObject struct {
 	TotalChapters int `json:"total_chapters"`
 }
 
+// AudiobookObject is the full representation of a Spotify audiobook, including its paginated chapters.
 type AudiobookObject struct {
 	SimplifiedAudiobookObject
 	// Chapters is the chapters of the audiobook.

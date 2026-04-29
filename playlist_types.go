@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 )
 
+// PlaylistItemsRefObject is a lightweight reference to a playlist's items endpoint, containing only the href and total count.
 type PlaylistItemsRefObject struct {
 	// Href is a link to the Web API endpoint where full details of the playlist's tracks can be retrieved.
 	Href string `json:"href"`
@@ -11,6 +12,7 @@ type PlaylistItemsRefObject struct {
 	Total int `json:"total"`
 }
 
+// PlaylistUserObject is a minimal user representation as it appears in playlist contexts (e.g. the added_by field).
 type PlaylistUserObject struct {
 	// ExternalURLs is the known external URLs for this user.
 	ExternalURLs ExternalURLsObject `json:"external_urls"`
@@ -24,12 +26,14 @@ type PlaylistUserObject struct {
 	URI string `json:"uri"`
 }
 
+// PlaylistOwnerObject extends [PlaylistUserObject] with the owner's display name.
 type PlaylistOwnerObject struct {
 	PlaylistUserObject
 	// DisplayName is the name displayed on the user's profile. null if not available.
 	DisplayName *string `json:"display_name"`
 }
 
+// playlistBase holds the fields common to both [PlaylistObject] and [SimplifiedPlaylistObject].
 type playlistBase struct {
 	// Collaborative is true if the owner allows other users to modify the playlist.
 	Collaborative bool `json:"collaborative"`
@@ -53,6 +57,7 @@ type playlistBase struct {
 	SnapshotID string `json:"snapshot_id"`
 }
 
+// SimplifiedPlaylistObject is a reduced representation of a playlist, returned in list and search results.
 type SimplifiedPlaylistObject struct {
 	playlistBase
 	// Items is a collection containing a link [Href] to the Web API endpoint where full details of the playlist's items can be retrieved,
@@ -66,6 +71,7 @@ type SimplifiedPlaylistObject struct {
 	Tracks *PlaylistItemsRefObject `json:"tracks"`
 }
 
+// PlaylistObject is the full representation of a Spotify playlist, including its paginated items.
 type PlaylistObject struct {
 	playlistBase
 	// Items is the items of the playlist.
@@ -74,6 +80,8 @@ type PlaylistObject struct {
 	Tracks *Page[PlaylistTrackObject] `json:"tracks"`
 }
 
+// PlaylistTrackObject represents a single item in a playlist, which can be either a track or an episode.
+// Exactly one of Track or Episode will be non-nil after unmarshalling.
 type PlaylistTrackObject struct {
 	// AddedAt is the date and time the track or episode was added. Note: some very old playlists may return null in this field.
 	AddedAt *string `json:"added_at"`
@@ -87,6 +95,9 @@ type PlaylistTrackObject struct {
 	Episode *EpisodeObject
 }
 
+// UnmarshalJSON implements custom JSON unmarshalling for PlaylistTrackObject.
+// The "item" field from the Spotify API is a polymorphic object (track or episode),
+// so this method peeks at its "type" field to decide which struct to populate.
 func (p *PlaylistTrackObject) UnmarshalJSON(data []byte) error {
 	var raw struct {
 		AddedAt *string             `json:"added_at"`
@@ -120,6 +131,7 @@ func (p *PlaylistTrackObject) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// PlaylistDetailRequest is the request body for [Client.ChangePlaylistDetails].
 type PlaylistDetailRequest struct {
 	// Name is the new name for the playlist.
 	Name string `json:"name"`
@@ -132,6 +144,8 @@ type PlaylistDetailRequest struct {
 	Description string `json:"description"`
 }
 
+// PlaylistItemsRequest is the request body for [Client.UpdatePlaylistItems].
+// Use URIs to replace items, or RangeStart/InsertBefore/RangeLength to reorder them.
 type PlaylistItemsRequest struct {
 	// URIs is the list of Spotify URIs to set, can be track or episode URIs.
 	URIs []string `json:"uris,omitempty"`
@@ -145,6 +159,7 @@ type PlaylistItemsRequest struct {
 	SnapshotID *string `json:"snapshot_id,omitempty"`
 }
 
+// AddItemToPlaylistRequest is the request body for [Client.AddItemsToPlaylist].
 type AddItemToPlaylistRequest struct {
 	// URIs is an array of the Spotify URIs to add.
 	URIs []string `json:"uris,omitempty"`
@@ -152,6 +167,7 @@ type AddItemToPlaylistRequest struct {
 	Position *int `json:"position,omitempty"`
 }
 
+// RemovePlaylistItemsRequest is the request body for [Client.RemovePlaylistItems].
 type RemovePlaylistItemsRequest struct {
 	// Items is an array of objects containing Spotify URIs of the tracks or episodes to remove.
 	Items []struct {
@@ -162,6 +178,7 @@ type RemovePlaylistItemsRequest struct {
 	SnapshotID string `json:"snapshot_id"`
 }
 
+// CreatePlaylistRequest is the request body for [Client.CreatePlaylist].
 type CreatePlaylistRequest struct {
 	// Name is the name for the new playlist.
 	// This name does not need to be unique; a user may have several playlists with the same name.

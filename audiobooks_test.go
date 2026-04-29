@@ -117,7 +117,7 @@ func TestGetAudiobookChapters_Success(t *testing.T) {
 
 func TestGetUserSavedAudiobooks_Success(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/me/audiobooks/" {
+		if r.URL.Path != "/me/audiobooks" {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
 		w.Header().Set("Content-Type", "application/json")

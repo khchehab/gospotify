@@ -5,12 +5,21 @@ import (
 )
 
 const (
-	spotifyBaseUrl    = "https://api.spotify.com"
+	// spotifyBaseUrl is the base URL for the Spotify Web API.
+	spotifyBaseUrl = "https://api.spotify.com"
+	// spotifyAPIVersion is the API version path segment appended to the base URL.
 	spotifyAPIVersion = "/v1"
 
-	authStateLength           = 16
-	authWaitTimeout           = 2 * time.Minute
-	authCodeExchangeTimeout   = 10 * time.Second
+	// authStateLength is the length of the random CSRF state string generated for each OAuth flow.
+	authStateLength = 16
+	// authWaitTimeout is how long the authorization code flow will wait for the user to complete
+	// the browser-based login before giving up.
+	authWaitTimeout = 2 * time.Minute
+	// authCodeExchangeTimeout is the HTTP timeout for the token exchange request after the
+	// authorization code is received.
+	authCodeExchangeTimeout = 10 * time.Second
+	// authServerShutdownTimeout is how long the local callback server is given to shut down
+	// gracefully after the authorization flow completes.
 	authServerShutdownTimeout = 5 * time.Second
 )
 
@@ -24,8 +33,11 @@ const (
 )
 
 const (
-	RepeatOff     RepeatState = "off"
-	RepeatTrack   RepeatState = "track"
+	// RepeatOff disables repeat — playback stops at the end of the current context.
+	RepeatOff RepeatState = "off"
+	// RepeatTrack repeats the current track indefinitely.
+	RepeatTrack RepeatState = "track"
+	// RepeatContext repeats the current context (album, playlist, etc.) indefinitely.
 	RepeatContext RepeatState = "context"
 )
 
@@ -39,6 +51,7 @@ const (
 	ItemTypeAudiobook ItemType = "audiobook"
 )
 
+// itemTypeMap is the set of valid ItemType values, used by [ItemType.Valid].
 var itemTypeMap = map[ItemType]struct{}{
 	ItemTypeAlbum:     {},
 	ItemTypeArtist:    {},

@@ -5,6 +5,9 @@ import (
 	"fmt"
 )
 
+// unmarshalTrackOrEpisode peeks at the "type" field of data and unmarshals the payload into
+// either a TrackObject or an EpisodeObject. Exactly one of the two return pointers will be
+// non-nil on success. Returns an error for unknown types or malformed JSON.
 func unmarshalTrackOrEpisode(data []byte) (*TrackObject, *EpisodeObject, error) {
 	var peek struct {
 		Type string `json:"type"`

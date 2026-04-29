@@ -1,5 +1,6 @@
 package gospotify
 
+// SimplifiedAlbumObject is a reduced representation of an album, returned when albums appear nested inside other objects (e.g. inside a track).
 type SimplifiedAlbumObject struct {
 	// AlbumType is the type of the album. Allowed values are "album", "single", or "compilation".
 	AlbumType string `json:"album_type"`
@@ -31,8 +32,10 @@ type SimplifiedAlbumObject struct {
 	Artists []SimplifiedArtistObject `json:"artists"`
 }
 
+// AlbumObject is the full representation of a Spotify album, including its tracks and additional metadata.
 type AlbumObject struct {
 	SimplifiedAlbumObject
+	// Tracks is the tracks of the album.
 	Tracks Page[SimplifiedTrackObject] `json:"tracks"`
 	// Copyrights is the copyright statements of the album.
 	Copyrights []CopyrightObject `json:"copyrights"`
@@ -46,15 +49,17 @@ type AlbumObject struct {
 	Popularity int `json:"popularity"`
 }
 
+// ArtistDiscographyAlbumObject is a simplified album as it appears in an artist's discography, with an additional AlbumGroup field.
 type ArtistDiscographyAlbumObject struct {
 	SimplifiedAlbumObject
 	// Deprecated: AlbumGroup is a field that describes the relationship between the artist and the album
 	AlbumGroup *string `json:"album_group"`
 }
 
+// SavedAlbumObject is an album saved to the current user's library, with the date it was added.
 type SavedAlbumObject struct {
 	// AddedAt is the date and time the album was saved.
 	AddedAt string `json:"added_at"`
-	// Track is the information about the track.
+	// Album is the information about the album.
 	Album AlbumObject `json:"album"`
 }
