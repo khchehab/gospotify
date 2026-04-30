@@ -5,12 +5,6 @@ import (
 	"testing"
 )
 
-// helpers
-
-func ptrTimeRange(t TimeRange) *TimeRange { return &t }
-func ptrInt(i int) *int                  { return &i }
-func ptrString(s string) *string         { return &s }
-
 // ---- WithTimeRange ----
 
 func TestWithTimeRange(t *testing.T) {
@@ -426,9 +420,9 @@ func TestWithBeforeMs(t *testing.T) {
 
 func TestToQuery(t *testing.T) {
 	cases := []struct {
-		name  string
-		p     queryParameters
-		want  string
+		name string
+		p    queryParameters
+		want string
 	}{
 		{
 			"empty",
@@ -437,95 +431,95 @@ func TestToQuery(t *testing.T) {
 		},
 		{
 			"only_time_range",
-			queryParameters{timeRange: ptrTimeRange(ShortTerm)},
+			queryParameters{timeRange: new(ShortTerm)},
 			"time_range=short_term",
 		},
 		{
 			"only_limit",
-			queryParameters{limit: ptrInt(20)},
+			queryParameters{limit: new(20)},
 			"limit=20",
 		},
 		{
 			"only_offset",
-			queryParameters{offset: ptrInt(5)},
+			queryParameters{offset: new(5)},
 			"offset=5",
 		},
 		{
 			"only_after",
-			queryParameters{after: ptrString("abc123")},
+			queryParameters{after: new("abc123")},
 			"after=abc123",
 		},
 		{
 			// url.Values.Encode sorts keys alphabetically
 			"all_four",
 			queryParameters{
-				timeRange: ptrTimeRange(LongTerm),
-				limit:     ptrInt(50),
-				offset:    ptrInt(0),
-				after:     ptrString("xyz"),
+				timeRange: new(LongTerm),
+				limit:     new(50),
+				offset:    new(0),
+				after:     new("xyz"),
 			},
 			"after=xyz&limit=50&offset=0&time_range=long_term",
 		},
 		{
 			"time_range_and_limit",
-			queryParameters{timeRange: ptrTimeRange(MediumTerm), limit: ptrInt(10)},
+			queryParameters{timeRange: new(MediumTerm), limit: new(10)},
 			"limit=10&time_range=medium_term",
 		},
 		{
 			"limit_and_offset",
-			queryParameters{limit: ptrInt(25), offset: ptrInt(50)},
+			queryParameters{limit: new(25), offset: new(50)},
 			"limit=25&offset=50",
 		},
 		{
 			"offset_zero_emitted",
-			queryParameters{offset: ptrInt(0)},
+			queryParameters{offset: new(0)},
 			"offset=0",
 		},
 		{
 			"limit_min",
-			queryParameters{limit: ptrInt(1)},
+			queryParameters{limit: new(1)},
 			"limit=1",
 		},
 		{
 			"limit_max",
-			queryParameters{limit: ptrInt(50)},
+			queryParameters{limit: new(50)},
 			"limit=50",
 		},
 		{
 			"after_url_special_chars_encoded",
-			queryParameters{after: ptrString("hello world&foo=bar")},
+			queryParameters{after: new("hello world&foo=bar")},
 			"after=hello+world%26foo%3Dbar",
 		},
 		{
 			"time_range_empty_string",
-			queryParameters{timeRange: ptrTimeRange(TimeRange(""))},
+			queryParameters{timeRange: new(TimeRange(""))},
 			"time_range=",
 		},
 		{
 			"only_market",
-			queryParameters{market: ptrString("US")},
+			queryParameters{market: new("US")},
 			"market=US",
 		},
 		{
 			"market_gb",
-			queryParameters{market: ptrString("GB")},
+			queryParameters{market: new("GB")},
 			"market=GB",
 		},
 		{
 			// url.Values.Encode sorts keys alphabetically: after, limit, market, offset, time_range
 			"all_five_fields",
 			queryParameters{
-				timeRange: ptrTimeRange(LongTerm),
-				limit:     ptrInt(50),
-				offset:    ptrInt(0),
-				after:     ptrString("xyz"),
-				market:    ptrString("US"),
+				timeRange: new(LongTerm),
+				limit:     new(50),
+				offset:    new(0),
+				after:     new("xyz"),
+				market:    new("US"),
 			},
 			"after=xyz&limit=50&market=US&offset=0&time_range=long_term",
 		},
 		{
 			"market_with_limit",
-			queryParameters{market: ptrString("DE"), limit: ptrInt(20)},
+			queryParameters{market: new("DE"), limit: new(20)},
 			"limit=20&market=DE",
 		},
 		{
@@ -540,12 +534,12 @@ func TestToQuery(t *testing.T) {
 		},
 		{
 			"only_include_external",
-			queryParameters{includeExternal: ptrString("audio")},
+			queryParameters{includeExternal: new("audio")},
 			"include_external=audio",
 		},
 		{
 			"only_fields",
-			queryParameters{fields: ptrString("name,id")},
+			queryParameters{fields: new("name,id")},
 			"fields=name%2Cid",
 		},
 		{
@@ -570,37 +564,37 @@ func TestToQuery(t *testing.T) {
 		},
 		{
 			"only_position",
-			queryParameters{position: ptrInt(3)},
+			queryParameters{position: new(3)},
 			"position=3",
 		},
 		{
 			"position_zero",
-			queryParameters{position: ptrInt(0)},
+			queryParameters{position: new(0)},
 			"position=0",
 		},
 		{
 			"only_device_id",
-			queryParameters{deviceID: ptrString("dev123")},
+			queryParameters{deviceID: new("dev123")},
 			"device_id=dev123",
 		},
 		{
 			"only_after_ms",
-			queryParameters{afterMs: ptrInt(1609459200000)},
+			queryParameters{afterMs: new(1609459200000)},
 			"after=1609459200000",
 		},
 		{
 			"only_before_ms",
-			queryParameters{beforeMs: ptrInt(1609459200000)},
+			queryParameters{beforeMs: new(1609459200000)},
 			"before=1609459200000",
 		},
 		{
 			"after_ms_and_limit",
-			queryParameters{afterMs: ptrInt(1000), limit: ptrInt(10)},
+			queryParameters{afterMs: new(1000), limit: new(10)},
 			"after=1000&limit=10",
 		},
 		{
 			"device_id_and_limit",
-			queryParameters{deviceID: ptrString("mydev"), limit: ptrInt(5)},
+			queryParameters{deviceID: new("mydev"), limit: new(5)},
 			"device_id=mydev&limit=5",
 		},
 	}

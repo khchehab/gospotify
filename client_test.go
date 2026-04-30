@@ -95,12 +95,10 @@ func TestGet_Non200_InvalidJSON_ReturnsUnmarshalError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected non-nil error")
 	}
-	var syntaxErr *json.SyntaxError
-	if !errors.As(err, &syntaxErr) {
+	if _, ok := errors.AsType[*json.SyntaxError](err); !ok {
 		t.Errorf("expected *json.SyntaxError, got %T: %v", err, err)
 	}
-	var errResp *ErrorResponse
-	if errors.As(err, &errResp) {
+	if _, ok := errors.AsType[*ErrorResponse](err); ok {
 		t.Error("error should not be an *ErrorResponse")
 	}
 	if result.Name != "" {
@@ -123,8 +121,7 @@ func TestGet_200_InvalidJSON_ReturnsUnmarshalError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected non-nil error")
 	}
-	var syntaxErr *json.SyntaxError
-	if !errors.As(err, &syntaxErr) {
+	if _, ok := errors.AsType[*json.SyntaxError](err); !ok {
 		t.Errorf("expected *json.SyntaxError, got %T: %v", err, err)
 	}
 	if result.Name != "" {
@@ -145,8 +142,7 @@ func TestGet_TransportError_ReturnsError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected non-nil error")
 	}
-	var urlErr *url.Error
-	if !errors.As(err, &urlErr) {
+	if _, ok := errors.AsType[*url.Error](err); !ok {
 		t.Errorf("expected *url.Error, got %T: %v", err, err)
 	}
 	if result.Name != "" {

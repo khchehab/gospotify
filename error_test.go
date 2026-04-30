@@ -205,8 +205,7 @@ func TestErrorResponse_Unmarshal_InvalidJSON(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected non-nil error for invalid JSON")
 	}
-	var syntaxErr *json.SyntaxError
-	if !errors.As(err, &syntaxErr) {
+	if _, ok := errors.AsType[*json.SyntaxError](err); !ok {
 		t.Errorf("expected *json.SyntaxError, got %T: %v", err, err)
 	}
 }
@@ -216,8 +215,7 @@ func TestErrorResponse_Unmarshal_StatusWrongType(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected non-nil error for wrong status type")
 	}
-	var typeErr *json.UnmarshalTypeError
-	if !errors.As(err, &typeErr) {
+	if _, ok := errors.AsType[*json.UnmarshalTypeError](err); !ok {
 		t.Errorf("expected *json.UnmarshalTypeError, got %T: %v", err, err)
 	}
 }
