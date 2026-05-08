@@ -58,13 +58,6 @@ func TestErrorResponse_Error_LongMessage(t *testing.T) {
 
 // ---- error interface compliance ----
 
-func TestErrorResponse_ImplementsErrorInterface(t *testing.T) {
-	var err error = &ErrorResponse{}
-	if err == nil {
-		t.Error("*ErrorResponse should be assignable to error and non-nil")
-	}
-}
-
 func TestErrorResponse_ReturnedAsError(t *testing.T) {
 	makeErr := func() error {
 		e := &ErrorResponse{}
