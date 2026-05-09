@@ -15,7 +15,7 @@ func TestGetCurrentUserProfile_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"id":"user1","display_name":"Test User","type":"user","email":"test@example.com"}`))
+		_, _ = w.Write([]byte(`{"id":"user1","display_name":"Test User","type":"user","email":"test@example.com"}`))
 	}))
 	defer srv.Close()
 
@@ -36,7 +36,7 @@ func TestGetCurrentUserProfile_APIError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"error":{"status":401,"message":"Unauthorized"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":401,"message":"Unauthorized"}}`))
 	}))
 	defer srv.Close()
 
@@ -61,7 +61,7 @@ func TestGetUserTopArtists_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":10,"limit":20,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":10,"limit":20,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -82,7 +82,7 @@ func TestGetUserTopArtists_WithTimeRange(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":0,"limit":20,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":0,"limit":20,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -100,7 +100,7 @@ func TestGetUserTopTracks_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":20,"limit":20,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":20,"limit":20,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -125,7 +125,7 @@ func TestGetUserTopTracks_WithOptions(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":0,"limit":5,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":0,"limit":5,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -146,7 +146,7 @@ func TestGetFollowedArtists_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"artists":{"href":"","total":7,"limit":20,"cursors":{},"items":[]}}`))
+		_, _ = w.Write([]byte(`{"artists":{"href":"","total":7,"limit":20,"cursors":{},"items":[]}}`))
 	}))
 	defer srv.Close()
 
@@ -167,7 +167,7 @@ func TestGetFollowedArtists_WithAfter(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"artists":{"href":"","total":0,"limit":20,"cursors":{},"items":[]}}`))
+		_, _ = w.Write([]byte(`{"artists":{"href":"","total":0,"limit":20,"cursors":{},"items":[]}}`))
 	}))
 	defer srv.Close()
 

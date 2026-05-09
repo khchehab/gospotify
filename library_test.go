@@ -94,7 +94,7 @@ func TestCheckUserSavedItems_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[true,false]`))
+		_, _ = w.Write([]byte(`[true,false]`))
 	}))
 	defer srv.Close()
 

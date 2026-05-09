@@ -43,7 +43,7 @@ func TestSearchForItem_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"tracks":{"href":"","total":1,"limit":20,"offset":0,"items":[]},
 			"artists":{"href":"","total":2,"limit":20,"offset":0,"items":[]}
 		}`))
@@ -71,7 +71,7 @@ func TestSearchForItem_SpecialCharsInQuery_AreEncoded(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"tracks":{"href":"","total":0,"limit":20,"offset":0,"items":[]}}`))
+		_, _ = w.Write([]byte(`{"tracks":{"href":"","total":0,"limit":20,"offset":0,"items":[]}}`))
 	}))
 	defer srv.Close()
 
@@ -93,7 +93,7 @@ func TestSearchForItem_WithOptions(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"tracks":{"href":"","total":0,"limit":10,"offset":0,"items":[]}}`))
+		_, _ = w.Write([]byte(`{"tracks":{"href":"","total":0,"limit":10,"offset":0,"items":[]}}`))
 	}))
 	defer srv.Close()
 
@@ -108,7 +108,7 @@ func TestSearchForItem_APIError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"error":{"status":401,"message":"No token provided"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":401,"message":"No token provided"}}`))
 	}))
 	defer srv.Close()
 
