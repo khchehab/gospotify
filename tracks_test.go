@@ -26,7 +26,7 @@ func TestGetTrack_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"id":"track1","name":"Test Track","type":"track","duration_ms":210000}`))
+		_, _ = w.Write([]byte(`{"id":"track1","name":"Test Track","type":"track","duration_ms":210000}`))
 	}))
 	defer srv.Close()
 
@@ -53,7 +53,7 @@ func TestGetTrack_WithMarket(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"id":"track1"}`))
+		_, _ = w.Write([]byte(`{"id":"track1"}`))
 	}))
 	defer srv.Close()
 
@@ -68,7 +68,7 @@ func TestGetTrack_APIError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error":{"status":404,"message":"Track not found"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":404,"message":"Track not found"}}`))
 	}))
 	defer srv.Close()
 
@@ -93,7 +93,7 @@ func TestGetUserSavedTracks_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":5,"limit":20,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":5,"limit":20,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -118,7 +118,7 @@ func TestGetUserSavedTracks_WithOptions(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":0,"limit":10,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":0,"limit":10,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 

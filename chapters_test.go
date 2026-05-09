@@ -26,7 +26,7 @@ func TestGetChapter_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"id":"ch1","name":"Chapter 1","type":"chapter","duration_ms":3600000,"chapter_number":1}`))
+		_, _ = w.Write([]byte(`{"id":"ch1","name":"Chapter 1","type":"chapter","duration_ms":3600000,"chapter_number":1}`))
 	}))
 	defer srv.Close()
 
@@ -50,7 +50,7 @@ func TestGetChapter_WithMarket(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"id":"ch1"}`))
+		_, _ = w.Write([]byte(`{"id":"ch1"}`))
 	}))
 	defer srv.Close()
 
@@ -65,7 +65,7 @@ func TestGetChapter_APIError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error":{"status":404,"message":"Chapter not found"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":404,"message":"Chapter not found"}}`))
 	}))
 	defer srv.Close()
 

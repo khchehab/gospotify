@@ -26,7 +26,7 @@ func TestGetAudiobook_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"id":"ab1","name":"Test Audiobook","type":"audiobook","total_chapters":12}`))
+		_, _ = w.Write([]byte(`{"id":"ab1","name":"Test Audiobook","type":"audiobook","total_chapters":12}`))
 	}))
 	defer srv.Close()
 
@@ -53,7 +53,7 @@ func TestGetAudiobook_WithMarket(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"id":"ab1"}`))
+		_, _ = w.Write([]byte(`{"id":"ab1"}`))
 	}))
 	defer srv.Close()
 
@@ -68,7 +68,7 @@ func TestGetAudiobook_APIError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error":{"status":404,"message":"Audiobook not found"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":404,"message":"Audiobook not found"}}`))
 	}))
 	defer srv.Close()
 
@@ -101,7 +101,7 @@ func TestGetAudiobookChapters_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":12,"limit":20,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":12,"limit":20,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -122,7 +122,7 @@ func TestGetUserSavedAudiobooks_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":2,"limit":20,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":2,"limit":20,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 

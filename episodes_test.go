@@ -26,7 +26,7 @@ func TestGetEpisode_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"id":"ep1","name":"Episode 1","type":"episode","duration_ms":1800000}`))
+		_, _ = w.Write([]byte(`{"id":"ep1","name":"Episode 1","type":"episode","duration_ms":1800000}`))
 	}))
 	defer srv.Close()
 
@@ -50,7 +50,7 @@ func TestGetEpisode_WithMarket(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"id":"ep1"}`))
+		_, _ = w.Write([]byte(`{"id":"ep1"}`))
 	}))
 	defer srv.Close()
 
@@ -65,7 +65,7 @@ func TestGetEpisode_APIError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error":{"status":404,"message":"Episode not found"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":404,"message":"Episode not found"}}`))
 	}))
 	defer srv.Close()
 
@@ -90,7 +90,7 @@ func TestGetUserSavedEpisodes_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":3,"limit":20,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":3,"limit":20,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -115,7 +115,7 @@ func TestGetUserSavedEpisodes_WithOptions(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":0,"limit":5,"offset":2,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":0,"limit":5,"offset":2,"items":[]}`))
 	}))
 	defer srv.Close()
 

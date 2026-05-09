@@ -26,7 +26,7 @@ func TestGetAlbum_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"id":"abc123","name":"Test Album","album_type":"album"}`))
+		_, _ = w.Write([]byte(`{"id":"abc123","name":"Test Album","album_type":"album"}`))
 	}))
 	defer srv.Close()
 
@@ -50,7 +50,7 @@ func TestGetAlbum_WithMarket_PassesQueryParam(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"id":"abc123"}`))
+		_, _ = w.Write([]byte(`{"id":"abc123"}`))
 	}))
 	defer srv.Close()
 
@@ -65,7 +65,7 @@ func TestGetAlbum_APIError_ReturnsErrorResponse(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error":{"status":404,"message":"Album not found"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":404,"message":"Album not found"}}`))
 	}))
 	defer srv.Close()
 
@@ -98,7 +98,7 @@ func TestGetAlbumTracks_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":2,"limit":20,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":2,"limit":20,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -123,7 +123,7 @@ func TestGetAlbumTracks_WithOptions(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":0,"limit":5,"offset":10,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":0,"limit":5,"offset":10,"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -141,7 +141,7 @@ func TestGetUserSavedAlbums_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":1,"limit":20,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":1,"limit":20,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -159,7 +159,7 @@ func TestGetUserSavedAlbums_APIError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"error":{"status":401,"message":"Unauthorized"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":401,"message":"Unauthorized"}}`))
 	}))
 	defer srv.Close()
 

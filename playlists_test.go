@@ -29,7 +29,7 @@ func TestGetPlaylist_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"id":"pl1","name":"My Playlist","type":"playlist","snapshot_id":"snap1","items":{"href":"","total":0,"limit":20,"offset":0,"items":[]}}`))
+		_, _ = w.Write([]byte(`{"id":"pl1","name":"My Playlist","type":"playlist","snapshot_id":"snap1","items":{"href":"","total":0,"limit":20,"offset":0,"items":[]}}`))
 	}))
 	defer srv.Close()
 
@@ -50,7 +50,7 @@ func TestGetPlaylist_APIError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error":{"status":404,"message":"Playlist not found"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":404,"message":"Playlist not found"}}`))
 	}))
 	defer srv.Close()
 
@@ -86,7 +86,7 @@ func TestChangePlaylistDetails_Success(t *testing.T) {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
 		b, _ := io.ReadAll(r.Body)
-		json.Unmarshal(b, &capturedBody)
+		_ = json.Unmarshal(b, &capturedBody)
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer srv.Close()
@@ -116,7 +116,7 @@ func TestGetPlaylistItems_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":3,"limit":20,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":3,"limit":20,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -145,7 +145,7 @@ func TestUpdatePlaylistItems_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"snapshot_id":"newsnap1"}`))
+		_, _ = w.Write([]byte(`{"snapshot_id":"newsnap1"}`))
 	}))
 	defer srv.Close()
 
@@ -177,7 +177,7 @@ func TestAddItemsToPlaylist_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(`{"snapshot_id":"snap2"}`))
+		_, _ = w.Write([]byte(`{"snapshot_id":"snap2"}`))
 	}))
 	defer srv.Close()
 
@@ -209,7 +209,7 @@ func TestRemovePlaylistItems_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"snapshot_id":"snap3"}`))
+		_, _ = w.Write([]byte(`{"snapshot_id":"snap3"}`))
 	}))
 	defer srv.Close()
 
@@ -230,7 +230,7 @@ func TestGetCurrentUserPlaylists_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":6,"limit":20,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":6,"limit":20,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -254,7 +254,7 @@ func TestCreatePlaylist_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(`{"id":"newpl1","name":"New Playlist","type":"playlist","snapshot_id":"s1","items":{"href":"","total":0,"limit":20,"offset":0,"items":[]}}`))
+		_, _ = w.Write([]byte(`{"id":"newpl1","name":"New Playlist","type":"playlist","snapshot_id":"s1","items":{"href":"","total":0,"limit":20,"offset":0,"items":[]}}`))
 	}))
 	defer srv.Close()
 
@@ -286,7 +286,7 @@ func TestGetPlaylistCoverImage_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[{"url":"https://example.com/img.jpg","height":300,"width":300}]`))
+		_, _ = w.Write([]byte(`[{"url":"https://example.com/img.jpg","height":300,"width":300}]`))
 	}))
 	defer srv.Close()
 

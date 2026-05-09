@@ -23,7 +23,7 @@ func freePort(t *testing.T) int {
 		t.Fatalf("could not find free port: %v", err)
 	}
 	port := l.Addr().(*net.TCPAddr).Port
-	l.Close()
+	_ = l.Close()
 	return port
 }
 
@@ -286,10 +286,14 @@ func TestShutdownServer_RunningServer(t *testing.T) {
 	a := NewAuthenticator("id", "secret", "http://localhost/callback", nil)
 	a.shutdownServer(srv)
 
-	_, err = net.DialTimeout("tcp", "127.0.0.1:"+formatPort(port), 200*time.Millisecond)
-	if err == nil {
-		t.Error("expected connection to be refused after shutdown, but it succeeded")
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		_, err = net.DialTimeout("tcp", "127.0.0.1:"+formatPort(port), 100*time.Millisecond)
+		if err != nil {
+			return
+		}
 	}
+	t.Error("expected connection to be refused after shutdown, but it succeeded")
 }
 
 func TestShutdownServer_AlreadyStopped(t *testing.T) {

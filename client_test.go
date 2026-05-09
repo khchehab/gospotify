@@ -30,7 +30,7 @@ func TestGet_200_UnmarshalsResponseBody(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"name":"test-track"}`))
+		_, _ = w.Write([]byte(`{"name":"test-track"}`))
 	}))
 	defer srv.Close()
 
@@ -51,7 +51,7 @@ func TestGet_Non200_ReturnsErrorResponse(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(body))
+		_, _ = w.Write([]byte(body))
 	}))
 	defer srv.Close()
 
@@ -84,7 +84,7 @@ func TestGet_Non200_ReturnsErrorResponse(t *testing.T) {
 func TestGet_Non200_InvalidJSON_ReturnsUnmarshalError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`this is not json`))
+		_, _ = w.Write([]byte(`this is not json`))
 	}))
 	defer srv.Close()
 
@@ -110,7 +110,7 @@ func TestGet_200_InvalidJSON_ReturnsUnmarshalError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{bad json`))
+		_, _ = w.Write([]byte(`{bad json`))
 	}))
 	defer srv.Close()
 
@@ -153,7 +153,7 @@ func TestGet_TransportError_ReturnsError(t *testing.T) {
 func TestGet_CancelledContext_AlreadyCancelled(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"name":"should-not-reach"}`))
+		_, _ = w.Write([]byte(`{"name":"should-not-reach"}`))
 	}))
 	defer srv.Close()
 
@@ -181,7 +181,7 @@ func TestGet_OptsPassedThrough(t *testing.T) {
 		capturedQuery = r.URL.RawQuery
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{}`))
+		_, _ = w.Write([]byte(`{}`))
 	}))
 	defer srv.Close()
 
@@ -279,7 +279,7 @@ func TestPost_200_UnmarshalsResponseBody(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"name":"created"}`))
+		_, _ = w.Write([]byte(`{"name":"created"}`))
 	}))
 	defer srv.Close()
 
@@ -314,7 +314,7 @@ func TestPost_Non200_ReturnsErrorResponse(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(`{"error":{"status":403,"message":"Forbidden"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":403,"message":"Forbidden"}}`))
 	}))
 	defer srv.Close()
 
@@ -359,7 +359,7 @@ func TestPut_200_WithJSONBody(t *testing.T) {
 			t.Errorf("expected Content-Type application/json, got %q", r.Header.Get("Content-Type"))
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"name":"updated"}`))
+		_, _ = w.Write([]byte(`{"name":"updated"}`))
 	}))
 	defer srv.Close()
 
@@ -403,7 +403,7 @@ func TestPut_Non200_ReturnsErrorResponse(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"error":{"status":401,"message":"Unauthorized"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":401,"message":"Unauthorized"}}`))
 	}))
 	defer srv.Close()
 
@@ -446,7 +446,7 @@ func TestDelete_200_UnmarshalsResponseBody(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"name":"deleted"}`))
+		_, _ = w.Write([]byte(`{"name":"deleted"}`))
 	}))
 	defer srv.Close()
 
@@ -481,7 +481,7 @@ func TestDelete_Non200_ReturnsErrorResponse(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error":{"status":404,"message":"Not found"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":404,"message":"Not found"}}`))
 	}))
 	defer srv.Close()
 
@@ -503,7 +503,7 @@ func TestGet_CancelledContext_MidFlight(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(200 * time.Millisecond)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"name":"too-late"}`))
+		_, _ = w.Write([]byte(`{"name":"too-late"}`))
 	}))
 	defer srv.Close()
 

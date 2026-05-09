@@ -17,7 +17,7 @@ func TestGetPlaybackState_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"is_playing":true,"repeat_state":"off","shuffle_state":false,"device":{"id":"dev1","name":"My Speaker","type":"Speaker","volume_percent":50}}`))
+		_, _ = w.Write([]byte(`{"is_playing":true,"repeat_state":"off","shuffle_state":false,"device":{"id":"dev1","name":"My Speaker","type":"Speaker","volume_percent":50}}`))
 	}))
 	defer srv.Close()
 
@@ -54,7 +54,7 @@ func TestGetPlaybackState_APIError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"error":{"status":401,"message":"Unauthorized"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":401,"message":"Unauthorized"}}`))
 	}))
 	defer srv.Close()
 
@@ -98,7 +98,7 @@ func TestGetAvailableDevices_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[{"id":"dev1","name":"My Speaker","type":"Speaker","volume_percent":80,"is_active":true,"is_private_session":false,"is_restricted":false}]`))
+		_, _ = w.Write([]byte(`[{"id":"dev1","name":"My Speaker","type":"Speaker","volume_percent":80,"is_active":true,"is_private_session":false,"is_restricted":false}]`))
 	}))
 	defer srv.Close()
 
@@ -122,7 +122,7 @@ func TestGetCurrentPlayingTrack_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"is_playing":true,"repeat_state":"off","shuffle_state":false,"device":{"id":"dev1","name":"My Speaker","type":"Speaker","volume_percent":50}}`))
+		_, _ = w.Write([]byte(`{"is_playing":true,"repeat_state":"off","shuffle_state":false,"device":{"id":"dev1","name":"My Speaker","type":"Speaker","volume_percent":50}}`))
 	}))
 	defer srv.Close()
 
@@ -365,7 +365,7 @@ func TestGetRecentlyPlayedTracks_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":5,"limit":20,"cursors":{},"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":5,"limit":20,"cursors":{},"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -390,7 +390,7 @@ func TestGetRecentlyPlayedTracks_WithCursorOptions(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":0,"limit":10,"cursors":{},"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":0,"limit":10,"cursors":{},"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -408,7 +408,7 @@ func TestGetUserQueue_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"currently_playing":null,"queue":[]}`))
+		_, _ = w.Write([]byte(`{"currently_playing":null,"queue":[]}`))
 	}))
 	defer srv.Close()
 
@@ -620,7 +620,7 @@ func TestGetAlbum_404Error_ContainsFunctionName(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error":{"status":404,"message":"not found"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":404,"message":"not found"}}`))
 	}))
 	defer srv.Close()
 
@@ -640,7 +640,7 @@ func TestGetTrack_404Error_ContainsFunctionName(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error":{"status":404,"message":"not found"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":404,"message":"not found"}}`))
 	}))
 	defer srv.Close()
 
@@ -660,7 +660,7 @@ func TestGetPlaylist_404Error_ContainsFunctionName(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error":{"status":404,"message":"not found"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":404,"message":"not found"}}`))
 	}))
 	defer srv.Close()
 
@@ -680,7 +680,7 @@ func TestSearchForItem_404Error_ContainsFunctionName(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error":{"status":404,"message":"not found"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":404,"message":"not found"}}`))
 	}))
 	defer srv.Close()
 

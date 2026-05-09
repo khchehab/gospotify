@@ -1,10 +1,15 @@
 # gospotify
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/khchehab/gospotify.svg)](https://pkg.go.dev/github.com/khchehab/gospotify)
+[![Go Report Card](https://goreportcard.com/badge/github.com/khchehab/gospotify)](https://goreportcard.com/report/github.com/khchehab/gospotify)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/khchehab/gospotify/main)](https://go.dev/doc/install)
+
 A Go client library for the Spotify Web API with built-in OAuth2 authentication and automatic token refresh.
 
 ## Requirements
 
-Go 1.26 or later.
+Go 1.26.0 or later.
 
 ## Installation
 

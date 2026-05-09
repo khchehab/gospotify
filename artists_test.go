@@ -26,7 +26,7 @@ func TestGetArtist_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"id":"artist1","name":"Test Artist","type":"artist"}`))
+		_, _ = w.Write([]byte(`{"id":"artist1","name":"Test Artist","type":"artist"}`))
 	}))
 	defer srv.Close()
 
@@ -47,7 +47,7 @@ func TestGetArtist_APIError_ReturnsErrorResponse(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error":{"status":404,"message":"Artist not found"}}`))
+		_, _ = w.Write([]byte(`{"error":{"status":404,"message":"Artist not found"}}`))
 	}))
 	defer srv.Close()
 
@@ -80,7 +80,7 @@ func TestGetArtistAlbums_Success(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":3,"limit":20,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":3,"limit":20,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 
@@ -101,7 +101,7 @@ func TestGetArtistAlbums_WithIncludeGroups(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"href":"","total":0,"limit":20,"offset":0,"items":[]}`))
+		_, _ = w.Write([]byte(`{"href":"","total":0,"limit":20,"offset":0,"items":[]}`))
 	}))
 	defer srv.Close()
 
